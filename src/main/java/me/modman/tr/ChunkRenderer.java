@@ -63,8 +63,8 @@ public class ChunkRenderer {
         // Prepare the vertex data
         float[] vertexData = new float[16 * 16 * VERTICES_PER_QUAD * FLOATS_PER_VERTEX];
         int index = 0;
-//        int blockSize = chunkSize / 16; // Size of each block
-        float blockSize = 0.15f;
+        int blockSize = chunkSize / 16; // Size of each block
+//        float blockSize = 0.01f;
 
         for (int z = 0; z < 16; z++) {
             for (int x = 0; x < 16; x++) {
