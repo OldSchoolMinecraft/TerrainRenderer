@@ -21,6 +21,9 @@ public class Main {
     private static float lastMouseY;
     private static boolean isDragging = false;
 
+    private static final int WINDOW_WIDTH = 1280;
+    private static final int WINDOW_HEIGHT = 720;
+
     public static long getWindowID() {
         return window;
     }
@@ -37,7 +40,7 @@ public class Main {
         GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, GLFW.GLFW_TRUE);
 
         // Create the window
-        window = GLFW.glfwCreateWindow(800, 600, "OSM Terrain Renderer", MemoryUtil.NULL, MemoryUtil.NULL);
+        window = GLFW.glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "OSM Terrain Renderer", MemoryUtil.NULL, MemoryUtil.NULL);
         if (window == MemoryUtil.NULL) {
             throw new RuntimeException("Failed to create the GLFW window");
         }
@@ -48,7 +51,7 @@ public class Main {
 
         // Initialize OpenGL
         GL.createCapabilities();
-        GL11.glViewport(0, 0, 800, 600);
+        GL11.glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
 
         // Enable depth testing
         GL11.glEnable(GL11.GL_DEPTH_TEST);
@@ -94,9 +97,6 @@ public class Main {
 
         ChunkRenderer.init();
 
-        Camera.zoom(0.0f);
-        updateOrthoProjection();
-
         // Main loop
         while (!GLFW.glfwWindowShouldClose(window)) {
             // Poll events
@@ -130,10 +130,10 @@ public class Main {
         GL11.glLoadIdentity();
 
         // Adjust the orthographic projection based on zoom
-        float left = 0 / zoom;
-        float right = 800 / zoom;
-        float bottom = 600 / zoom;
-        float top = 0 / zoom;
+        float left = -WINDOW_WIDTH / 2 / zoom;
+        float right = WINDOW_WIDTH / 2 / zoom;
+        float bottom = -WINDOW_HEIGHT / 2 / zoom;
+        float top = WINDOW_HEIGHT / 2 / zoom;
 
         GL11.glOrtho(left, right, bottom, top, -1, 1);
 

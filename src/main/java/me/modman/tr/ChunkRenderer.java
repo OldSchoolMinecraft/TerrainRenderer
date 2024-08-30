@@ -53,18 +53,19 @@ public class ChunkRenderer {
         }
 
         // Calculate chunk position based on its coordinates
-        int posX = chunkX * chunkSize;
-        int posZ = chunkZ * chunkSize;
+        float scaleFactor = Camera.getZoom();
+        float chunkOffsetX = chunkX * chunkSize;
+        float chunkOffsetZ = chunkZ * chunkSize;
 
-        // Adjust for camera position
-        float adjustedX = posX - Camera.getXOffset();
-        float adjustedY = posZ - Camera.getYOffset();
+        // Adjust for camera position and apply zoom scaling
+        float adjustedX = (chunkOffsetX - Camera.getXOffset()) * scaleFactor;
+        float adjustedY = (chunkOffsetZ - Camera.getYOffset()) * scaleFactor;
 
         // Prepare the vertex data
         float[] vertexData = new float[16 * 16 * VERTICES_PER_QUAD * FLOATS_PER_VERTEX];
         int index = 0;
-        int blockSize = chunkSize / 16; // Size of each block
-//        float blockSize = 0.01f;
+        float blockSize = 1.0f / 16.0f; // Block size normalized for a 16x16 chunk
+        float scaledBlockSize = blockSize * scaleFactor;
 
         for (int z = 0; z < 16; z++) {
             for (int x = 0; x < 16; x++) {
@@ -72,11 +73,8 @@ public class ChunkRenderer {
                 byte blockID = chunkData[blockIndex];
                 float[] color = BlockColor.getColor(blockID);
 
-                float blockX = adjustedX + x * blockSize;
-                float blockY = adjustedY + z * blockSize;
-
-                // Apply scale factor consistently
-                float scaledBlockSize = blockSize;
+                float blockX = adjustedX + x * scaledBlockSize;
+                float blockY = adjustedY + z * scaledBlockSize;
 
                 // Vertex 1
                 vertexData[index++] = blockX;
@@ -121,5 +119,4 @@ public class ChunkRenderer {
         // Unbind VAO
         GL30.glBindVertexArray(0);
     }
-
 }
