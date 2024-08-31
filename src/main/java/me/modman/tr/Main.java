@@ -4,6 +4,7 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GLUtil;
 import org.lwjgl.system.MemoryUtil;
 
 import java.awt.*;
@@ -23,6 +24,16 @@ public class Main {
 
     private static final int WINDOW_WIDTH = 1280;
     private static final int WINDOW_HEIGHT = 720;
+
+    public static int getWindowWidth()
+    {
+        return WINDOW_WIDTH;
+    }
+
+    public static int getWindowHeight()
+    {
+        return WINDOW_HEIGHT;
+    }
 
     public static long getWindowID() {
         return window;
