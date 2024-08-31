@@ -13,10 +13,6 @@ import java.nio.DoubleBuffer;
 public class Main {
 
     private static long window;
-    private static final int CHUNK_SIZE = 16;
-    private static byte[] chunkData;
-    private static int chunkX = 0;
-    private static int chunkZ = 0;
 
     private static float lastMouseX;
     private static float lastMouseY;
