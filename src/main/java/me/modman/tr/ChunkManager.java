@@ -1,6 +1,7 @@
 package me.modman.tr;
 
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL30;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,7 +33,7 @@ public class ChunkManager {
     }
 
     public static void renderChunks() {
-        GL11.glPushMatrix();
+        GL30.glPushMatrix();
 
         for (Map.Entry<String, byte[]> entry : loadedChunks.entrySet()) {
             String[] coords = entry.getKey().split(",");
@@ -41,6 +42,6 @@ public class ChunkManager {
             byte[] chunkData = entry.getValue();
             ChunkRenderer.renderChunk(chunkData, CHUNK_SIZE, chunkX, chunkZ);
         }
-        GL11.glPopMatrix();
+        GL30.glPopMatrix();
     }
 }

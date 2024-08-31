@@ -15,6 +15,9 @@ public class BlockColor {
             case 17, 18 -> new float[]{0.41f, 0.54f, 0.09f}; // Green for Leaves
             case 35 -> new float[]{1.0f, 1.0f, 1.0f}; // White for Wool
             case 24, 43 -> new float[]{0.94f, 0.9f, 0.55f}; // Tan for Sandstone
+            case 57 -> new float[]{0.67f, 0.88f, 0.93f};
+            case 79 -> new float[]{0.45f, 0.60f, 0.81f};
+            case 82 -> new float[]{0.46f, 0.47f, 0.51f};
             default -> new float[]{1.0f, 1.0f, 1.0f}; // White for Unknown
         };
     }

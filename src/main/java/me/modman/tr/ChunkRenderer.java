@@ -1,8 +1,5 @@
 package me.modman.tr;
 
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL15;
-import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
 public class ChunkRenderer {
@@ -18,15 +15,15 @@ public class ChunkRenderer {
         GL30.glBindVertexArray(vaoId);
 
         // Create VBO
-        vboId = GL15.glGenBuffers();
-        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vboId);
-        GL15.glBufferData(GL15.GL_ARRAY_BUFFER, 16 * 16 * VERTICES_PER_QUAD * FLOATS_PER_VERTEX * Float.BYTES, GL15.GL_DYNAMIC_DRAW);
+        vboId = GL30.glGenBuffers();
+        GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, vboId);
+        GL30.glBufferData(GL30.GL_ARRAY_BUFFER, 16 * 16 * VERTICES_PER_QUAD * FLOATS_PER_VERTEX * Float.BYTES, GL30.GL_DYNAMIC_DRAW);
 
         // Define the structure of our vertex data
-        GL20.glVertexAttribPointer(0, 2, GL11.GL_FLOAT, false, FLOATS_PER_VERTEX * Float.BYTES, 0); // Position (x, y)
-        GL20.glVertexAttribPointer(1, 3, GL11.GL_FLOAT, false, FLOATS_PER_VERTEX * Float.BYTES, 2 * Float.BYTES); // Color (r, g, b)
-        GL20.glEnableVertexAttribArray(0);
-        GL20.glEnableVertexAttribArray(1);
+        GL30.glVertexAttribPointer(0, 2, GL30.GL_FLOAT, false, FLOATS_PER_VERTEX * Float.BYTES, 0); // Position (x, y)
+        GL30.glVertexAttribPointer(1, 3, GL30.GL_FLOAT, false, FLOATS_PER_VERTEX * Float.BYTES, 2 * Float.BYTES); // Color (r, g, b)
+        GL30.glEnableVertexAttribArray(0);
+        GL30.glEnableVertexAttribArray(1);
 
         // Unbind VAO
         GL30.glBindVertexArray(0);
@@ -113,13 +110,13 @@ public class ChunkRenderer {
 
         // Bind VAO and upload vertex data to VBO
         GL30.glBindVertexArray(vaoId);
-        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vboId);
-        GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, 0, vertexData);
+        GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, vboId);
+        GL30.glBufferSubData(GL30.GL_ARRAY_BUFFER, 0, vertexData);
 
         // Use shader program and draw the quads
-        GL20.glUseProgram(shaderProgramId);
-        GL11.glDrawArrays(GL11.GL_QUADS, 0, 16 * 16 * VERTICES_PER_QUAD);
-        GL20.glUseProgram(0);
+        GL30.glUseProgram(shaderProgramId);
+        GL30.glDrawArrays(GL30.GL_QUADS, 0, 16 * 16 * VERTICES_PER_QUAD);
+        GL30.glUseProgram(0);
 
         // Unbind VAO
         GL30.glBindVertexArray(0);
@@ -143,13 +140,13 @@ public class ChunkRenderer {
 
         // Bind VAO and upload vertex data to VBO
         GL30.glBindVertexArray(vaoId);
-        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vboId);
-        GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, 0, vertexData);
+        GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, vboId);
+        GL30.glBufferSubData(GL30.GL_ARRAY_BUFFER, 0, vertexData);
 
         // Use shader program and draw the square
-        GL20.glUseProgram(shaderProgramId);
-        GL11.glDrawArrays(GL11.GL_QUADS, 0, 4);
-        GL20.glUseProgram(0);
+        GL30.glUseProgram(shaderProgramId);
+        GL30.glDrawArrays(GL30.GL_QUADS, 0, 4);
+        GL30.glUseProgram(0);
 
         // Unbind VAO
         GL30.glBindVertexArray(0);

@@ -1,6 +1,7 @@
 package me.modman.tr;
 
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL30;
 
 public class Camera {
     private static float xOffset = 0;
@@ -11,10 +12,10 @@ public class Camera {
     private static final float PAN_SENSITIVITY = 0.003f; // Adjust this value as needed
 
     public static void update() {
-        GL11.glMatrixMode(GL11.GL_MODELVIEW);
-        GL11.glLoadIdentity();
-        GL11.glTranslatef(xOffset, yOffset, 0);
-        GL11.glScaled(zoom, zoom, 1);
+        GL30.glMatrixMode(GL11.GL_MODELVIEW);
+        GL30.glLoadIdentity();
+        GL30.glTranslatef(xOffset, yOffset, 0);
+        GL30.glScaled(zoom, zoom, 1);
     }
 
     public static void pan(float deltaX, float deltaY) {

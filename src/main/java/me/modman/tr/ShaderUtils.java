@@ -1,6 +1,7 @@
 package me.modman.tr;
 
-import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GL30;
+
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.io.IOException;
@@ -9,26 +10,26 @@ public class ShaderUtils {
 
     public static int createShaderProgram(String vertexShaderPath, String fragmentShaderPath) {
         // Load and compile the vertex shader
-        int vertexShaderId = compileShader(vertexShaderPath, GL20.GL_VERTEX_SHADER);
+        int vertexShaderId = compileShader(vertexShaderPath, GL30.GL_VERTEX_SHADER);
         // Load and compile the fragment shader
-        int fragmentShaderId = compileShader(fragmentShaderPath, GL20.GL_FRAGMENT_SHADER);
+        int fragmentShaderId = compileShader(fragmentShaderPath, GL30.GL_FRAGMENT_SHADER);
 
         // Create a new shader program
-        int programId = GL20.glCreateProgram();
-        GL20.glAttachShader(programId, vertexShaderId);
-        GL20.glAttachShader(programId, fragmentShaderId);
-        GL20.glLinkProgram(programId);
+        int programId = GL30.glCreateProgram();
+        GL30.glAttachShader(programId, vertexShaderId);
+        GL30.glAttachShader(programId, fragmentShaderId);
+        GL30.glLinkProgram(programId);
 
         // Check for linking errors
-        if (GL20.glGetProgrami(programId, GL20.GL_LINK_STATUS) == GL20.GL_FALSE) {
+        if (GL30.glGetProgrami(programId, GL30.GL_LINK_STATUS) == GL30.GL_FALSE) {
             System.err.println("Error: Shader program linking failed.");
-            System.err.println(GL20.glGetProgramInfoLog(programId));
+            System.err.println(GL30.glGetProgramInfoLog(programId));
             return -1;
         }
 
         // Clean up shaders (they are no longer needed once linked into the program)
-        GL20.glDeleteShader(vertexShaderId);
-        GL20.glDeleteShader(fragmentShaderId);
+        GL30.glDeleteShader(vertexShaderId);
+        GL30.glDeleteShader(fragmentShaderId);
 
         return programId;
     }
@@ -38,14 +39,14 @@ public class ShaderUtils {
         String shaderSource = readFile(shaderPath);
 
         // Create a new shader
-        int shaderId = GL20.glCreateShader(shaderType);
-        GL20.glShaderSource(shaderId, shaderSource);
-        GL20.glCompileShader(shaderId);
+        int shaderId = GL30.glCreateShader(shaderType);
+        GL30.glShaderSource(shaderId, shaderSource);
+        GL30.glCompileShader(shaderId);
 
         // Check for compilation errors
-        if (GL20.glGetShaderi(shaderId, GL20.GL_COMPILE_STATUS) == GL20.GL_FALSE) {
+        if (GL30.glGetShaderi(shaderId, GL30.GL_COMPILE_STATUS) == GL30.GL_FALSE) {
             System.err.println("Error: Shader compilation failed for " + shaderPath);
-            System.err.println(GL20.glGetShaderInfoLog(shaderId));
+            System.err.println(GL30.glGetShaderInfoLog(shaderId));
             return -1;
         }
 

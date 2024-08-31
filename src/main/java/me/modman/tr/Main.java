@@ -3,7 +3,7 @@ package me.modman.tr;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL;
-import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GLUtil;
 import org.lwjgl.system.MemoryUtil;
 
@@ -58,11 +58,11 @@ public class Main {
 
         // Initialize OpenGL
         GL.createCapabilities();
-        GL11.glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+        GL30.glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
 
         // Enable depth testing
-        GL11.glEnable(GL11.GL_DEPTH_TEST);
-        GL11.glDepthFunc(GL11.GL_LEQUAL);
+        GL30.glEnable(GL30.GL_DEPTH_TEST);
+        GL30.glDepthFunc(GL30.GL_LEQUAL);
 
         // Set up key callback
         GLFW.glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
@@ -110,7 +110,7 @@ public class Main {
             GLFW.glfwPollEvents();
 
             // Clear the screen - Clear both color and depth buffers
-            GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+            GL30.glClear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT);
 
             // Update camera and projection
             Camera.update();
@@ -131,8 +131,8 @@ public class Main {
     }
 
     private static void updateOrthoProjection() {
-        GL11.glMatrixMode(GL11.GL_PROJECTION);
-        GL11.glLoadIdentity();
+        GL30.glMatrixMode(GL30.GL_PROJECTION);
+        GL30.glLoadIdentity();
 
         float zoom = Camera.getZoom();
         int windowWidth = Main.getWindowWidth();
@@ -145,9 +145,9 @@ public class Main {
         float bottom = -zoomFactor;
         float top = zoomFactor;
 
-        GL11.glOrtho(left, right, bottom, top, -1.0f, 1.0f);
+        GL30.glOrtho(left, right, bottom, top, -1.0f, 1.0f);
 
-        GL11.glMatrixMode(GL11.GL_MODELVIEW);
+        GL30.glMatrixMode(GL30.GL_MODELVIEW);
     }
 
     public static double[] getCursorPos(long windowID) {
