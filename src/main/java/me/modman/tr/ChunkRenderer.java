@@ -53,19 +53,20 @@ public class ChunkRenderer {
         }
 
         // Calculate chunk position based on its coordinates
-        float scaleFactor = Camera.getZoom();
-        float chunkOffsetX = chunkX * chunkSize;
-        float chunkOffsetZ = chunkZ * chunkSize;
+        float scaleFactorX = Camera.getZoom();
+        float scaleFactorY = Camera.getZoom(); // Make sure both are the same for uniform scaling
+        float chunkOffsetX = chunkX * (chunkSize * scaleFactor);
+        float chunkOffsetZ = chunkZ * (chunkSize * scaleFactor);
 
-        // Adjust for camera position and apply zoom scaling
-        float adjustedX = (chunkOffsetX - Camera.getXOffset()) * scaleFactor;
-        float adjustedY = (chunkOffsetZ - Camera.getYOffset()) * scaleFactor;
+        float adjustedX = (chunkOffsetX - Camera.getXOffset()) * scaleFactorX;
+        float adjustedY = (chunkOffsetZ - Camera.getYOffset()) * scaleFactorY;
 
         // Prepare the vertex data
         float[] vertexData = new float[16 * 16 * VERTICES_PER_QUAD * FLOATS_PER_VERTEX];
         int index = 0;
-        float blockSize = 1.0f / 16.0f; // Block size normalized for a 16x16 chunk
-        float scaledBlockSize = blockSize * scaleFactor;
+        float blockSize = 1.0f / 16.0f; // Normalized block size for a 16x16 chunk
+        float scaledBlockSizeX = blockSize * scaleFactorX;
+        float scaledBlockSizeY = blockSize * scaleFactorY;
 
         for (int z = 0; z < 16; z++) {
             for (int x = 0; x < 16; x++) {
@@ -73,8 +74,8 @@ public class ChunkRenderer {
                 byte blockID = chunkData[blockIndex];
                 float[] color = BlockColor.getColor(blockID);
 
-                float blockX = adjustedX + x * scaledBlockSize;
-                float blockY = adjustedY + z * scaledBlockSize;
+                float blockX = adjustedX + (x * blockSize * scaleFactor);
+                float blockY = adjustedY + (z * blockSize * scaleFactor);
 
                 // Vertex 1
                 vertexData[index++] = blockX;
@@ -84,22 +85,22 @@ public class ChunkRenderer {
                 vertexData[index++] = color[2];
 
                 // Vertex 2
-                vertexData[index++] = blockX + scaledBlockSize;
+                vertexData[index++] = blockX + scaledBlockSizeX;
                 vertexData[index++] = blockY;
                 vertexData[index++] = color[0];
                 vertexData[index++] = color[1];
                 vertexData[index++] = color[2];
 
                 // Vertex 3
-                vertexData[index++] = blockX + scaledBlockSize;
-                vertexData[index++] = blockY + scaledBlockSize;
+                vertexData[index++] = blockX + scaledBlockSizeX;
+                vertexData[index++] = blockY + scaledBlockSizeY;
                 vertexData[index++] = color[0];
                 vertexData[index++] = color[1];
                 vertexData[index++] = color[2];
 
                 // Vertex 4
                 vertexData[index++] = blockX;
-                vertexData[index++] = blockY + scaledBlockSize;
+                vertexData[index++] = blockY + scaledBlockSizeY;
                 vertexData[index++] = color[0];
                 vertexData[index++] = color[1];
                 vertexData[index++] = color[2];
