@@ -74,7 +74,7 @@ public class ChunkRenderer {
                 float[] color = BlockColor.getColor(blockID); // Get the color for this block type
 
                 // Calculate block's position on the screen
-                float blockX = chunkWorldX + (x * blockSize / aspectRatio);
+                float blockX = -(chunkWorldX + (x * blockSize / aspectRatio));
                 float blockY = chunkWorldZ + (z * blockSize);
 
                 // Ensure that the block is drawn as a square
