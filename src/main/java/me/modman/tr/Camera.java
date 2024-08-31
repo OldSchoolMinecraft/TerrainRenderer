@@ -5,10 +5,10 @@ import org.lwjgl.opengl.GL11;
 public class Camera {
     private static float xOffset = 0;
     private static float yOffset = 0;
-    private static float zoom = 5.0f;
-    private static final float ZOOM_SENSITIVITY = 0.1f;
-    private static final float MIN_ZOOM = 1.0f;
-    private static final float PAN_SENSITIVITY = 0.1f; // Adjust this value as needed
+    private static float zoom = 0.05f;
+    private static final float ZOOM_SENSITIVITY = 0.005f;
+    private static final float MIN_ZOOM = 0.01f;
+    private static final float PAN_SENSITIVITY = 0.005f; // Adjust this value as needed
 
     public static void update() {
         GL11.glMatrixMode(GL11.GL_MODELVIEW);
@@ -26,10 +26,9 @@ public class Camera {
     static double scale = 1.0;
 
     public static void zoom(float deltaZoom) {
-        zoom += deltaZoom * ZOOM_SENSITIVITY;
-//        if (zoom < MIN_ZOOM) zoom = MIN_ZOOM; // Constrain zoom to minimum value
-        if (zoom <= 0) zoom = 0.1f;
-        ChunkRenderer.setScaleFactor(zoom); // Update scale factor for rendering
+        float newZoom = zoom + (deltaZoom * ZOOM_SENSITIVITY);
+        if (newZoom < MIN_ZOOM) newZoom = MIN_ZOOM;
+        zoom = newZoom;
     }
 
     public static float getXOffset() {

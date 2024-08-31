@@ -11,12 +11,6 @@ public class ChunkRenderer {
     private static int shaderProgramId;
     private static final int VERTICES_PER_QUAD = 4;
     private static final int FLOATS_PER_VERTEX = 5; // x, y, r, g, b
-    private static float scaleFactor = 1.0f;
-
-    public static void setScaleFactor(float scale) {
-        scaleFactor = scale;
-    }
-
 
     public static void init() {
         // Create VAO
@@ -52,30 +46,33 @@ public class ChunkRenderer {
             return; // No data to render
         }
 
-        // Calculate chunk position based on its coordinates
-        float scaleFactorX = Camera.getZoom();
-        float scaleFactorY = Camera.getZoom(); // Make sure both are the same for uniform scaling
-        float chunkOffsetX = chunkX * (chunkSize * scaleFactor);
-        float chunkOffsetZ = chunkZ * (chunkSize * scaleFactor);
+        // Get the zoom factor
+        float zoom = Camera.getZoom();
 
-        float adjustedX = (chunkOffsetX - Camera.getXOffset()) * scaleFactorX;
-        float adjustedY = (chunkOffsetZ - Camera.getYOffset()) * scaleFactorY;
+        // Calculate the chunk's position in the world, adjusted for zoom and camera offset
+        float chunkWorldX = (chunkX * chunkSize - Camera.getXOffset()) * zoom;
+        float chunkWorldZ = (chunkZ * chunkSize - Camera.getYOffset()) * zoom;
 
-        // Prepare the vertex data
+        // Define the size of each block, adjusted for zoom
+        float blockSize = zoom; // Each block is zoom times the base size
+
+        // Prepare the vertex data array
         float[] vertexData = new float[16 * 16 * VERTICES_PER_QUAD * FLOATS_PER_VERTEX];
         int index = 0;
-        float blockSize = 1.0f / 16.0f; // Normalized block size for a 16x16 chunk
-        float scaledBlockSizeX = blockSize * scaleFactorX;
-        float scaledBlockSizeY = blockSize * scaleFactorY;
 
         for (int z = 0; z < 16; z++) {
             for (int x = 0; x < 16; x++) {
-                int blockIndex = x + z * 16; // Compute index based on chunk size of 16x16
-                byte blockID = chunkData[blockIndex];
-                float[] color = BlockColor.getColor(blockID);
+                int blockIndex = x + z * 16; // Calculate index for the block in chunkData
+                byte blockID = chunkData[blockIndex]; // Get the block ID
+                float[] color = BlockColor.getColor(blockID); // Get the color for this block type
 
-                float blockX = adjustedX + (x * blockSize * scaleFactor);
-                float blockY = adjustedY + (z * blockSize * scaleFactor);
+                // Calculate block's position on the screen
+                float blockX = chunkWorldX + (x * blockSize);
+                float blockY = chunkWorldZ + (z * blockSize);
+
+                // Ensure that the block is drawn as a square
+                float blockEndX = blockX + blockSize;
+                float blockEndY = blockY + blockSize;
 
                 // Vertex 1
                 vertexData[index++] = blockX;
@@ -85,22 +82,22 @@ public class ChunkRenderer {
                 vertexData[index++] = color[2];
 
                 // Vertex 2
-                vertexData[index++] = blockX + scaledBlockSizeX;
+                vertexData[index++] = blockEndX;
                 vertexData[index++] = blockY;
                 vertexData[index++] = color[0];
                 vertexData[index++] = color[1];
                 vertexData[index++] = color[2];
 
                 // Vertex 3
-                vertexData[index++] = blockX + scaledBlockSizeX;
-                vertexData[index++] = blockY + scaledBlockSizeY;
+                vertexData[index++] = blockEndX;
+                vertexData[index++] = blockEndY;
                 vertexData[index++] = color[0];
                 vertexData[index++] = color[1];
                 vertexData[index++] = color[2];
 
                 // Vertex 4
                 vertexData[index++] = blockX;
-                vertexData[index++] = blockY + scaledBlockSizeY;
+                vertexData[index++] = blockEndY;
                 vertexData[index++] = color[0];
                 vertexData[index++] = color[1];
                 vertexData[index++] = color[2];
