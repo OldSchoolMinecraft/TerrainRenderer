@@ -7,7 +7,7 @@ public class Camera {
     private static float yOffset = 0;
     private static float zoom = 0.05f;
     private static final float ZOOM_SENSITIVITY = 0.005f;
-    private static final float MIN_ZOOM = 0.01f;
+    private static final float MIN_ZOOM = 0.005f;
     private static final float PAN_SENSITIVITY = 0.003f; // Adjust this value as needed
 
     public static void update() {
@@ -22,7 +22,7 @@ public class Camera {
         float panSpeed = PAN_SENSITIVITY;
 
         // Adjust the x and y offsets
-        xOffset -= deltaX * panSpeed / zoom; // Move left/right
+        xOffset += deltaX * panSpeed / zoom; // Move left/right
         yOffset += deltaY * panSpeed / zoom; // Move up/down
     }
 
