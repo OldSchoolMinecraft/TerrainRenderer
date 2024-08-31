@@ -131,18 +131,21 @@ public class Main {
     }
 
     private static void updateOrthoProjection() {
-        float zoom = Camera.getZoom();
-
         GL11.glMatrixMode(GL11.GL_PROJECTION);
         GL11.glLoadIdentity();
 
-        // Adjust the orthographic projection based on zoom
-        float left = -WINDOW_WIDTH / 2 / zoom;
-        float right = WINDOW_WIDTH / 2 / zoom;
-        float bottom = -WINDOW_HEIGHT / 2 / zoom;
-        float top = WINDOW_HEIGHT / 2 / zoom;
+        float zoom = Camera.getZoom();
+        int windowWidth = Main.getWindowWidth();
+        int windowHeight = Main.getWindowHeight();
 
-        GL11.glOrtho(left, right, bottom, top, -1, 1);
+        float aspectRatio = (float) windowWidth / windowHeight;
+        float zoomFactor = 1.0f / zoom;
+        float left = -aspectRatio * zoomFactor;
+        float right = aspectRatio * zoomFactor;
+        float bottom = -zoomFactor;
+        float top = zoomFactor;
+
+        GL11.glOrtho(left, right, bottom, top, -1.0f, 1.0f);
 
         GL11.glMatrixMode(GL11.GL_MODELVIEW);
     }

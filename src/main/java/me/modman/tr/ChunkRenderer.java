@@ -49,12 +49,16 @@ public class ChunkRenderer {
         // Get the zoom factor
         float zoom = Camera.getZoom();
 
-        // Calculate the chunk's position in the world, adjusted for zoom and camera offset
-        float chunkWorldX = (chunkX * chunkSize - Camera.getXOffset()) * zoom;
-        float chunkWorldZ = (chunkZ * chunkSize - Camera.getYOffset()) * zoom;
+        // Get the window width and height
+        int windowWidth = Main.getWindowWidth();
+        int windowHeight = Main.getWindowHeight();
 
-        // Define the size of each block, adjusted for zoom
-        float blockSize = zoom; // Each block is zoom times the base size
+        // Calculate the block size
+        float blockSize = zoom * Math.min(windowWidth, windowHeight) / (float) Math.max(windowWidth, windowHeight);
+
+        // Calculate the chunk's position in the world, adjusted for zoom and camera offset
+        float chunkWorldX = (chunkX * chunkSize - Camera.getXOffset()) * blockSize;
+        float chunkWorldZ = (chunkZ * chunkSize - Camera.getYOffset()) * blockSize;
 
         // Prepare the vertex data array
         float[] vertexData = new float[16 * 16 * VERTICES_PER_QUAD * FLOATS_PER_VERTEX];
@@ -117,4 +121,35 @@ public class ChunkRenderer {
         // Unbind VAO
         GL30.glBindVertexArray(0);
     }
+
+    public static void renderSimpleSquare(float centerX, float centerY, float size, float[] color) {
+        // Calculate the vertices for a square centered at (centerX, centerY) with a given size
+        float halfSize = size / 2.0f;
+        float x0 = centerX - halfSize;
+        float y0 = centerY - halfSize;
+        float x1 = centerX + halfSize;
+        float y1 = centerY + halfSize;
+
+        // Prepare vertex data
+        float[] vertexData = {
+                x0, y0, color[0], color[1], color[2], // Bottom-left
+                x1, y0, color[0], color[1], color[2], // Bottom-right
+                x1, y1, color[0], color[1], color[2], // Top-right
+                x0, y1, color[0], color[1], color[2]  // Top-left
+        };
+
+        // Bind VAO and upload vertex data to VBO
+        GL30.glBindVertexArray(vaoId);
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vboId);
+        GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, 0, vertexData);
+
+        // Use shader program and draw the square
+        GL20.glUseProgram(shaderProgramId);
+        GL11.glDrawArrays(GL11.GL_QUADS, 0, 4);
+        GL20.glUseProgram(0);
+
+        // Unbind VAO
+        GL30.glBindVertexArray(0);
+    }
+
 }

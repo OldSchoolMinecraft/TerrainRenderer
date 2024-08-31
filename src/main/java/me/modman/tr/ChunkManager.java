@@ -33,6 +33,8 @@ public class ChunkManager {
 
     public static void renderChunks() {
         GL11.glPushMatrix();
+        ChunkRenderer.renderSimpleSquare(0, 0, 1f, new float[] {1.0f, 0f, 0f});
+
         for (Map.Entry<String, byte[]> entry : loadedChunks.entrySet()) {
             String[] coords = entry.getKey().split(",");
             int chunkX = Integer.parseInt(coords[0]);
