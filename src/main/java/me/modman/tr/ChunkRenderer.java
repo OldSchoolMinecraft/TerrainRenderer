@@ -54,10 +54,13 @@ public class ChunkRenderer {
         int windowHeight = Main.getWindowHeight();
 
         // Calculate the block size
-        float blockSize = zoom * Math.min(windowWidth, windowHeight) / (float) Math.max(windowWidth, windowHeight);
+        float aspectRatio = (float) Main.getWindowWidth() / Main.getWindowHeight();
+        float baseSize = Math.min(windowWidth, windowHeight);
+        float blockSize = (zoom / baseSize) * windowWidth;
+//        float blockSize = zoom * Math.min(windowWidth, windowHeight) / (float) Math.max(windowWidth, windowHeight);
 
         // Calculate the chunk's position in the world, adjusted for zoom and camera offset
-        float chunkWorldX = (chunkX * chunkSize - Camera.getXOffset()) * blockSize;
+        float chunkWorldX = (chunkX * chunkSize - Camera.getXOffset()) * blockSize / aspectRatio;
         float chunkWorldZ = (chunkZ * chunkSize - Camera.getYOffset()) * blockSize;
 
         // Prepare the vertex data array
@@ -71,11 +74,11 @@ public class ChunkRenderer {
                 float[] color = BlockColor.getColor(blockID); // Get the color for this block type
 
                 // Calculate block's position on the screen
-                float blockX = chunkWorldX + (x * blockSize);
+                float blockX = chunkWorldX + (x * blockSize / aspectRatio);
                 float blockY = chunkWorldZ + (z * blockSize);
 
                 // Ensure that the block is drawn as a square
-                float blockEndX = blockX + blockSize;
+                float blockEndX = blockX + blockSize / aspectRatio;
                 float blockEndY = blockY + blockSize;
 
                 // Vertex 1
