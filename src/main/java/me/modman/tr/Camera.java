@@ -8,7 +8,7 @@ public class Camera {
     private static float zoom = 0.05f;
     private static final float ZOOM_SENSITIVITY = 0.005f;
     private static final float MIN_ZOOM = 0.01f;
-    private static final float PAN_SENSITIVITY = 0.005f; // Adjust this value as needed
+    private static final float PAN_SENSITIVITY = 0.003f; // Adjust this value as needed
 
     public static void update() {
         GL11.glMatrixMode(GL11.GL_MODELVIEW);
@@ -18,9 +18,12 @@ public class Camera {
     }
 
     public static void pan(float deltaX, float deltaY) {
-        float panSpeed = PAN_SENSITIVITY / (zoom);
-        xOffset -= deltaX * panSpeed; // Adjust to match zooming direction
-        yOffset += deltaY * panSpeed; // Adjust to match zooming direction
+        // Fixed pan speed, independent of zoom
+        float panSpeed = PAN_SENSITIVITY;
+
+        // Adjust the x and y offsets
+        xOffset -= deltaX * panSpeed / zoom; // Move left/right
+        yOffset += deltaY * panSpeed / zoom; // Move up/down
     }
 
     static double scale = 1.0;
