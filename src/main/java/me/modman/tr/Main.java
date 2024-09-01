@@ -96,9 +96,9 @@ public class Main {
         });
 
         GLFW.glfwSetScrollCallback(window, (window, xoffset, yoffset) -> {
-            System.out.println("Scroll input: xoffset=" + xoffset + ", yoffset=" + yoffset);
+//            System.out.println("Scroll input: xoffset=" + xoffset + ", yoffset=" + yoffset);
             Camera.zoom((float) yoffset);
-            System.out.println("New zoom: " + Camera.getZoom());
+//            System.out.println("New zoom: " + Camera.getZoom());
             updateOrthoProjection();
         });
 

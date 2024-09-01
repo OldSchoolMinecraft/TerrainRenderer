@@ -52,4 +52,5 @@ dependencies {
     runtimeOnly "org.lwjgl:lwjgl-stb::$lwjglNatives"
 
     implementation "com.google.guava:guava:33.3.0-jre"
+    implementation 'org.joml:joml:1.10.5'
 }

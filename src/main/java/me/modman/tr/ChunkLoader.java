@@ -16,7 +16,7 @@ public class ChunkLoader {
     public static byte[] loadChunk(int chunkX, int chunkZ, int chunkSize) {
         File chunkFile = new File("chunks/chunk." + chunkX + "." + chunkZ + ".dat");
         if (!chunkFile.exists()) {
-            System.out.println("Chunk file does not exist: " + chunkX + "," + chunkZ);
+//            System.out.println("Chunk file does not exist: " + chunkX + "," + chunkZ);
             return null;
         }
 
