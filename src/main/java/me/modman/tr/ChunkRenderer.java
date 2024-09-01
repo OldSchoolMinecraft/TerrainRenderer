@@ -77,11 +77,11 @@ public class ChunkRenderer
 
                 // Calculate the block's position in the world
                 float blockX = (chunkWorldX + (x * blockSize)) / aspectRatio;
-                float blockY = (chunkWorldZ + (z * blockSize)) / aspectRatio;
+                float blockY = (chunkWorldZ + (z * blockSize));
 
                 // Ensure that the block is drawn as a square
-                float blockEndX = blockX + blockSize / aspectRatio;
-                float blockEndY = blockY + blockSize / aspectRatio;
+                float blockEndX = blockX + (blockSize * aspectRatio);
+                float blockEndY = blockY + blockSize;
 
                 // Vertex 1
                 vertexData[index++] = blockX;

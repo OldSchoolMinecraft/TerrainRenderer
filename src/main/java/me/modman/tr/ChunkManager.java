@@ -58,7 +58,7 @@ public class ChunkManager {
             byte[] chunkData = entry.getValue();
             chunkRenderer.renderChunk(chunkData, CHUNK_SIZE, chunkX, chunkZ);
         }
-        System.out.println("Rendered " + chunkRenderCount + " visible chunks");
+//        System.out.println("Rendered " + chunkRenderCount + " visible chunks");
         GL30.glPopMatrix();
     }
 
