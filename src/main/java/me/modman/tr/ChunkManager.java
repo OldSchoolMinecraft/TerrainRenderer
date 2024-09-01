@@ -14,7 +14,7 @@ public class ChunkManager {
 
     private static final int CHUNK_SIZE = 16;
     private static final int RENDER_DISTANCE = 10; // How many chunks to render around the camera
-    private static Map<String, byte[]> loadedChunks = new HashMap<>();
+    private static Map<String, Chunk> loadedChunks = new HashMap<>();
 
     public static void loadVisibleChunks(float cameraX, float cameraY) {
         // Calculate the chunk coordinates based on the camera position and zoom level
@@ -48,14 +48,14 @@ public class ChunkManager {
         GL30.glPushMatrix();
 
         int chunkRenderCount = 0;
-        for (Map.Entry<String, byte[]> entry : loadedChunks.entrySet())
+        for (Map.Entry<String, Chunk> entry : loadedChunks.entrySet())
         {
             String[] coords = entry.getKey().split(",");
             int chunkX = Integer.parseInt(coords[0]);
             int chunkZ = Integer.parseInt(coords[1]);
 //            if (!isCoordinateInViewport(chunkX, chunkZ, Camera.getProjectionMatrix(), Camera.getViewMatrix(), Main.getWindowWidth(), Main.getWindowHeight())) continue;
             chunkRenderCount++;
-            byte[] chunkData = entry.getValue();
+            Block[] chunkData = entry.getValue().getChunkData();
             chunkRenderer.renderChunk(chunkData, CHUNK_SIZE, chunkX, chunkZ);
         }
 //        System.out.println("Rendered " + chunkRenderCount + " visible chunks");

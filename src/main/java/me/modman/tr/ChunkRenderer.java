@@ -45,7 +45,7 @@ public class ChunkRenderer
         return shaderProgramId;
     }
 
-    public void renderChunk(byte[] chunkData, int chunkSize, int chunkX, int chunkZ)
+    public void renderChunk(Block[] chunkData, int chunkSize, int chunkX, int chunkZ)
     {
         if (chunkData == null)
             return; // No data to render
@@ -72,8 +72,10 @@ public class ChunkRenderer
             for (int x = 0; x < 16; x++)
             {
                 int blockIndex = x + z * 16; // Calculate index for the block in chunkData
-                byte blockID = chunkData[blockIndex]; // Get the block ID
-                float[] color = BlockColor.getColor(blockID); // Get the color for this block type
+                byte blockID = chunkData[blockIndex].getID();
+                byte blockData = chunkData[blockIndex].getData();
+                byte blockHeight = chunkData[blockIndex].getHeight();
+                float[] color = BlockColor.getColor(blockID, blockData, blockHeight); // Get the color for this block type
 
                 // Calculate the block's position in the world
                 float blockX = (chunkWorldX + (x * blockSize)) / aspectRatio;
