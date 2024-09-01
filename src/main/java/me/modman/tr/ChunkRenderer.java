@@ -47,8 +47,10 @@ public class ChunkRenderer
         return shaderProgramId;
     }
 
-    public void renderChunk(Block[] chunkData, int chunkSize, int chunkX, int chunkZ)
+    public void renderChunk(Chunk chunk, int chunkSize, int chunkX, int chunkZ)
     {
+        if (chunk == null) return; // no data
+        Block[] chunkData = chunk.getChunkData();
         if (chunkData == null)
             return; // No data to render
 
@@ -122,6 +124,9 @@ public class ChunkRenderer
                 vertexData[index++] = height;
             }
         }
+
+        GL30.glActiveTexture(GL30.GL_TEXTURE0);
+        GL30.glBindTexture(GL30.GL_TEXTURE_2D, ShaderUtils.generateHeightMapTexture(chunk));
 
         // Bind VAO and upload vertex data to VBO
         GL30.glBindVertexArray(vaoId);
