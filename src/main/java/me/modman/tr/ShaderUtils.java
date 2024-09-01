@@ -53,6 +53,23 @@ public class ShaderUtils {
         return shaderId;
     }
 
+    public static int getUniformLocation(int shaderProgramId, String uniformName)
+    {
+        // Ensure the shader program is currently active
+        GL30.glUseProgram(shaderProgramId);
+
+        // Get the uniform location
+        int uniformLocation = GL30.glGetUniformLocation(shaderProgramId, uniformName);
+
+        // Check if the location was successfully retrieved
+        if (uniformLocation == -1)
+            System.err.println("Warning: Uniform '" + uniformName + "' not found in shader program " + shaderProgramId);
+
+        GL30.glUseProgram(0);
+
+        return uniformLocation;
+    }
+
     private static String readFile(String filePath) {
         try {
             return new String(Files.readAllBytes(Paths.get(filePath)));

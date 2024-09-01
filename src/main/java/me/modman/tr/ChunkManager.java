@@ -19,9 +19,6 @@ public class ChunkManager {
         int chunkX = (int) (cameraX / (CHUNK_SIZE * Camera.getZoom()));
         int chunkZ = (int) (cameraY / (CHUNK_SIZE * Camera.getZoom()));
 
-        // Track the chunks that should be loaded this frame
-        HashSet<String> newChunks = new HashSet<>();
-
         // Define the range to load chunks based on the render distance
         for (int x = -RENDER_DISTANCE; x <= RENDER_DISTANCE; x++) {
             for (int z = -RENDER_DISTANCE; z <= RENDER_DISTANCE; z++) {
@@ -29,23 +26,10 @@ public class ChunkManager {
                 int currentChunkZ = chunkZ + z;
                 String key = currentChunkX + "," + currentChunkZ;
 
-                // Add new chunk to the set
-                newChunks.add(key);
-
                 // Load the chunk if not already loaded
                 if (!loadedChunks.containsKey(key)) {
                     loadChunk(currentChunkX, currentChunkZ);
                 }
-            }
-        }
-
-        // Remove chunks that are no longer visible
-        Iterator<Map.Entry<String, byte[]>> iterator = loadedChunks.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<String, byte[]> entry = iterator.next();
-            String key = entry.getKey();
-            if (!newChunks.contains(key)) {
-                iterator.remove(); // Remove chunk from the map
             }
         }
     }
@@ -57,7 +41,7 @@ public class ChunkManager {
         }
     }
 
-    public static void renderChunks()
+    public static void renderChunks(ChunkRenderer chunkRenderer)
     {
         GL30.glPushMatrix();
 
@@ -67,12 +51,9 @@ public class ChunkManager {
             String[] coords = entry.getKey().split(",");
             int chunkX = Integer.parseInt(coords[0]);
             int chunkZ = Integer.parseInt(coords[1]);
-            if (isChunkVisible(chunkX, chunkZ))
-            {
-                chunkRenderCount++;
-                byte[] chunkData = entry.getValue();
-                ChunkRenderer.renderChunk(chunkData, CHUNK_SIZE, chunkX, chunkZ);
-            }
+            chunkRenderCount++;
+            byte[] chunkData = entry.getValue();
+            chunkRenderer.renderChunk(chunkData, CHUNK_SIZE, chunkX, chunkZ);
         }
         System.out.println("Rendered " + chunkRenderCount + " visible chunks");
         GL30.glPopMatrix();

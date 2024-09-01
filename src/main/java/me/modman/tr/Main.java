@@ -1,14 +1,18 @@
 package me.modman.tr;
 
+import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.glfw.GLFW;
+import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.GL30C;
 import org.lwjgl.opengl.GLUtil;
+import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
 import java.awt.*;
 import java.nio.DoubleBuffer;
+import java.nio.FloatBuffer;
 
 public class Main {
 
@@ -35,7 +39,10 @@ public class Main {
         return window;
     }
 
-    public static void main(String[] args) {
+    private static ChunkRenderer chunkRenderer = new ChunkRenderer();
+
+    public static void main(String[] args)
+    {
         // Initialize GLFW
         if (!GLFW.glfwInit()) {
             throw new IllegalStateException("Unable to initialize GLFW");
@@ -64,48 +71,51 @@ public class Main {
         GL30.glEnable(GL30.GL_DEPTH_TEST);
         GL30.glDepthFunc(GL30.GL_LEQUAL);
 
+        chunkRenderer.init();
+
         // Set up key callback
-        GLFW.glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
-            if (action == GLFW.GLFW_PRESS) {
-                // Handle key press
-            }
-        });
+        GLFWKeyCallbackI keyCallback = (window, key, scancode, action, mods) -> {};
+        try (GLFWKeyCallback callback = GLFW.glfwSetKeyCallback(window, keyCallback)) {}
 
         // Set up mouse callback
-        GLFW.glfwSetCursorPosCallback(window, (window, xpos, ypos) -> {
-            if (isDragging) {
+        GLFWCursorPosCallbackI cursorPosCallback = (window, xpos, ypos) ->
+        {
+            if (isDragging)
+            {
                 float deltaX = (float) (xpos - lastMouseX);
                 float deltaY = (float) (ypos - lastMouseY);
                 Camera.pan(deltaX, deltaY);
             }
             lastMouseX = (float) xpos;
             lastMouseY = (float) ypos;
-        });
+        };
+        try (GLFWCursorPosCallback callback = GLFW.glfwSetCursorPosCallback(window, cursorPosCallback)) {};
 
-        GLFW.glfwSetMouseButtonCallback(window, (window, button, action, mods) -> {
-            if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
-                if (action == GLFW.GLFW_PRESS) {
+        GLFWMouseButtonCallbackI mouseButtonCallback = (window, button, action, mods) ->
+        {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT)
+            {
+                if (action == GLFW.GLFW_PRESS)
+                {
                     isDragging = true;
                     double[] mousePos = getCursorPos(window);
                     lastMouseX = (float) mousePos[0];
                     lastMouseY = (float) mousePos[1];
-                } else if (action == GLFW.GLFW_RELEASE) {
-                    isDragging = false;
-                }
+                } else if (action == GLFW.GLFW_RELEASE) isDragging = false;
             }
-        });
+        };
+        try (GLFWMouseButtonCallback callback = GLFW.glfwSetMouseButtonCallback(window, mouseButtonCallback)) {};
 
-        GLFW.glfwSetScrollCallback(window, (window, xoffset, yoffset) -> {
-//            System.out.println("Scroll input: xoffset=" + xoffset + ", yoffset=" + yoffset);
+        GLFWScrollCallbackI scrollCallback = (window, xoffset, yoffset) ->
+        {
             Camera.zoom((float) yoffset);
-//            System.out.println("New zoom: " + Camera.getZoom());
             updateOrthoProjection();
-        });
-
-        ChunkRenderer.init();
+        };
+        try (GLFWScrollCallback callback = GLFW.glfwSetScrollCallback(window, scrollCallback)) {};
 
         // Main loop
-        while (!GLFW.glfwWindowShouldClose(window)) {
+        while (!GLFW.glfwWindowShouldClose(window))
+        {
             // Poll events
             GLFW.glfwPollEvents();
 
@@ -118,22 +128,26 @@ public class Main {
 
             // Load and render chunks
             ChunkManager.loadVisibleChunks(Camera.getXOffset(), Camera.getYOffset());
-            ChunkManager.renderChunks();
+            ChunkManager.renderChunks(chunkRenderer);
 
             // Swap buffers
             GLFW.glfwSwapBuffers(window);
         }
-
 
         // Clean up
         GLFW.glfwDestroyWindow(window);
         GLFW.glfwTerminate();
     }
 
-    private static void updateOrthoProjection() {
-        GL30.glMatrixMode(GL30.GL_PROJECTION);
-        GL30.glLoadIdentity();
+    private static int projectionMatrixLocation;
 
+    public static void updateOrthoProjection()
+    {
+        // Get the shader program ID and uniform location
+        int shaderProgramId = chunkRenderer.getShaderProgramID(); // Implement this method to get the current shader program ID
+        projectionMatrixLocation = ShaderUtils.getUniformLocation(shaderProgramId, "u_ProjectionMatrix");
+
+        // Create a new orthographic projection matrix
         float zoom = Camera.getZoom();
         int windowWidth = Main.getWindowWidth();
         int windowHeight = Main.getWindowHeight();
@@ -145,9 +159,18 @@ public class Main {
         float bottom = -zoomFactor;
         float top = zoomFactor;
 
-        GL30.glOrtho(left, right, bottom, top, -1.0f, 1.0f);
+        Matrix4f projectionMatrix = new Matrix4f().ortho(left, right, bottom, top, -1.0f, 1.0f);
 
-        GL30.glMatrixMode(GL30.GL_MODELVIEW);
+        // Send the projection matrix to the shader
+        try (MemoryStack stack = MemoryStack.stackPush())
+        {
+            FloatBuffer projectionMatrixBuffer = stack.mallocFloat(16);
+            projectionMatrix.get(projectionMatrixBuffer);
+
+            GL30.glUseProgram(shaderProgramId);
+            GL30.glUniformMatrix4fv(projectionMatrixLocation, false, projectionMatrixBuffer);
+            GL30.glUseProgram(0);
+        }
     }
 
     public static double[] getCursorPos(long windowID) {

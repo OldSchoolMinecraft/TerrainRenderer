@@ -1,6 +1,6 @@
 #version 330 core
 
-in vec3 fragColor; // Color passed from vertex shader
+in vec3 fragColor; // Color passed from the vertex shader
 
 out vec4 color;    // Final color output
 

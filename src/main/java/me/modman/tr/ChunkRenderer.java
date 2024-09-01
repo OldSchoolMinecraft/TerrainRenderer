@@ -2,14 +2,16 @@ package me.modman.tr;
 
 import org.lwjgl.opengl.GL30;
 
-public class ChunkRenderer {
-    private static int vaoId;
-    private static int vboId;
-    private static int shaderProgramId;
-    private static final int VERTICES_PER_QUAD = 4;
-    private static final int FLOATS_PER_VERTEX = 5; // x, y, r, g, b
+public class ChunkRenderer
+{
+    private int vaoId;
+    private int vboId;
+    private int shaderProgramId;
+    private final int VERTICES_PER_QUAD = 4;
+    private final int FLOATS_PER_VERTEX = 5; // x, y, r, g, b
 
-    public static void init() {
+    public void init()
+    {
         // Create VAO
         vaoId = GL30.glGenVertexArrays();
         GL30.glBindVertexArray(vaoId);
@@ -38,7 +40,13 @@ public class ChunkRenderer {
 
     }
 
-    public static void renderChunk(byte[] chunkData, int chunkSize, int chunkX, int chunkZ) {
+    public int getShaderProgramID()
+    {
+        return shaderProgramId;
+    }
+
+    public void renderChunk(byte[] chunkData, int chunkSize, int chunkX, int chunkZ)
+    {
         if (chunkData == null) {
             return; // No data to render
         }
@@ -122,7 +130,7 @@ public class ChunkRenderer {
         GL30.glBindVertexArray(0);
     }
 
-    public static void renderSimpleSquare(float centerX, float centerY, float size, float[] color) {
+    public void renderSimpleSquare(float centerX, float centerY, float size, float[] color) {
         // Calculate the vertices for a square centered at (centerX, centerY) with a given size
         float halfSize = size / 2.0f;
         float x0 = centerX - halfSize;
