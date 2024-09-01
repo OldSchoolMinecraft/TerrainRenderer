@@ -51,15 +51,19 @@ public class ChunkManager {
             String[] coords = entry.getKey().split(",");
             int chunkX = Integer.parseInt(coords[0]);
             int chunkZ = Integer.parseInt(coords[1]);
-            chunkRenderCount++;
-            byte[] chunkData = entry.getValue();
-            chunkRenderer.renderChunk(chunkData, CHUNK_SIZE, chunkX, chunkZ);
+            if (isChunkVisible(chunkX, chunkZ))
+            {
+                chunkRenderCount++;
+                byte[] chunkData = entry.getValue();
+                chunkRenderer.renderChunk(chunkData, CHUNK_SIZE, chunkX, chunkZ);
+            }
         }
         System.out.println("Rendered " + chunkRenderCount + " visible chunks");
         GL30.glPopMatrix();
     }
 
-    public static boolean isChunkVisible(float chunkX, float chunkZ) {
+    public static boolean isChunkVisible(float chunkX, float chunkZ)
+    {
         // Get camera parameters
         float cameraX = Camera.getXOffset();
         float cameraY = Camera.getYOffset();
@@ -88,12 +92,6 @@ public class ChunkManager {
         // Check if the chunk is within the viewport boundaries
         boolean withinX = chunkRight > left && chunkLeft < right;
         boolean withinY = chunkTop > bottom && chunkBottom < top;
-
-        // Print debug information
-        System.out.printf("Camera: (%.2f, %.2f), Zoom: %.2f%n", cameraX, cameraY, zoom);
-        System.out.printf("Viewport: (%.2f, %.2f, %.2f, %.2f)%n", left, right, bottom, top);
-        System.out.printf("Chunk: (%.2f, %.2f, %.2f, %.2f)%n", chunkLeft, chunkRight, chunkBottom, chunkTop);
-        System.out.printf("Visible: %b%n", (withinX && withinY));
 
         return withinX && withinY;
     }

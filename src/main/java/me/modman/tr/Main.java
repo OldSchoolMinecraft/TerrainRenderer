@@ -123,7 +123,7 @@ public class Main {
             GL30.glClear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT);
 
             // Update camera and projection
-            Camera.update();
+//            Camera.update();
             updateOrthoProjection();
 
             // Load and render chunks
@@ -143,11 +143,10 @@ public class Main {
 
     public static void updateOrthoProjection()
     {
-        // Get the shader program ID and uniform location
-        int shaderProgramId = chunkRenderer.getShaderProgramID(); // Implement this method to get the current shader program ID
-        projectionMatrixLocation = ShaderUtils.getUniformLocation(shaderProgramId, "u_ProjectionMatrix");
+        int shaderProgramId = chunkRenderer.getShaderProgramID();
+        int projectionMatrixLocation = ShaderUtils.getUniformLocation(shaderProgramId, "u_ProjectionMatrix");
+        int viewMatrixLocation = ShaderUtils.getUniformLocation(shaderProgramId, "u_ViewMatrix");
 
-        // Create a new orthographic projection matrix
         float zoom = Camera.getZoom();
         int windowWidth = Main.getWindowWidth();
         int windowHeight = Main.getWindowHeight();
@@ -160,15 +159,18 @@ public class Main {
         float top = zoomFactor;
 
         Matrix4f projectionMatrix = new Matrix4f().ortho(left, right, bottom, top, -1.0f, 1.0f);
+        Matrix4f viewMatrix = Camera.getViewMatrix();
 
-        // Send the projection matrix to the shader
         try (MemoryStack stack = MemoryStack.stackPush())
         {
             FloatBuffer projectionMatrixBuffer = stack.mallocFloat(16);
+            FloatBuffer viewMatrixBuffer = stack.mallocFloat(16);
             projectionMatrix.get(projectionMatrixBuffer);
+            viewMatrix.get(viewMatrixBuffer);
 
             GL30.glUseProgram(shaderProgramId);
             GL30.glUniformMatrix4fv(projectionMatrixLocation, false, projectionMatrixBuffer);
+            GL30.glUniformMatrix4fv(viewMatrixLocation, false, viewMatrixBuffer);
             GL30.glUseProgram(0);
         }
     }
