@@ -78,6 +78,7 @@ public class ShaderUtils {
             throw new IllegalArgumentException("Chunk data cannot be null.");
 
         int chunkSize = 16;
+
         // Create a ByteBuffer to hold the height data
         ByteBuffer heightData = BufferUtils.createByteBuffer(chunkSize * chunkSize);
 
@@ -87,7 +88,7 @@ public class ShaderUtils {
             for (int z = 0; z < chunkSize; z++)
             {
                 int index = x + z * chunkSize;
-                byte height = chunk.getBlockAt(x, z).getHeight(); // Assuming getBlock(index) returns the block at the specified index
+                byte height = chunk.getBlockAt(x, z).getHeight();
 
                 // Store the height value in the buffer
                 heightData.put(height);
@@ -95,18 +96,23 @@ public class ShaderUtils {
         }
         heightData.flip(); // Prepare the buffer for reading by OpenGL
 
-        // Generate a texture ID
+        // Generate and bind texture
         int textureID = GL30.glGenTextures();
         GL30.glBindTexture(GL30.GL_TEXTURE_2D, textureID);
 
-        // Set texture parameters for scaling and wrapping
+        // Set texture parameters
         GL30.glTexParameteri(GL30.GL_TEXTURE_2D, GL30.GL_TEXTURE_MIN_FILTER, GL30.GL_LINEAR);
         GL30.glTexParameteri(GL30.GL_TEXTURE_2D, GL30.GL_TEXTURE_MAG_FILTER, GL30.GL_LINEAR);
         GL30.glTexParameteri(GL30.GL_TEXTURE_2D, GL30.GL_TEXTURE_WRAP_S, GL30.GL_CLAMP_TO_EDGE);
         GL30.glTexParameteri(GL30.GL_TEXTURE_2D, GL30.GL_TEXTURE_WRAP_T, GL30.GL_CLAMP_TO_EDGE);
 
-        // Upload the height data to the GPU as a texture
+        // Upload height data to GPU
         GL30.glTexImage2D(GL30.GL_TEXTURE_2D, 0, GL30.GL_R8, chunkSize, chunkSize, 0, GL30.GL_RED, GL30.GL_UNSIGNED_BYTE, heightData);
+
+        // Check for errors
+        int error = GL30.glGetError();
+        if (error != GL30.GL_NO_ERROR)
+            System.err.println("OpenGL Error after texture setup: " + error);
 
         // Unbind the texture
         GL30.glBindTexture(GL30.GL_TEXTURE_2D, 0);
