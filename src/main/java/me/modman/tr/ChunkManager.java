@@ -45,7 +45,7 @@ public class ChunkManager {
 
     public static void renderChunks(ChunkRenderer chunkRenderer)
     {
-        GL30.glPushMatrix();
+//        GL30.glPushMatrix();
 
         int chunkRenderCount = 0;
         for (Map.Entry<String, Chunk> entry : loadedChunks.entrySet())
@@ -55,11 +55,14 @@ public class ChunkManager {
             int chunkZ = Integer.parseInt(coords[1]);
 //            if (!isCoordinateInViewport(chunkX, chunkZ, Camera.getProjectionMatrix(), Camera.getViewMatrix(), Main.getWindowWidth(), Main.getWindowHeight())) continue;
             chunkRenderCount++;
-            Block[] chunkData = entry.getValue().getChunkData();
-            chunkRenderer.renderChunk(chunkData, CHUNK_SIZE, chunkX, chunkZ);
+            Chunk chunk = entry.getValue();
+            if (chunk == null) continue;
+            Block[] chunkData = chunk.getChunkData();
+            if (chunkData == null) continue;
+            chunkRenderer.renderChunk(chunk, CHUNK_SIZE, chunkX, chunkZ);
         }
 //        System.out.println("Rendered " + chunkRenderCount + " visible chunks");
-        GL30.glPopMatrix();
+//        GL30.glPopMatrix();
     }
 
     public static boolean isChunkVisible(float chunkX, float chunkZ)
