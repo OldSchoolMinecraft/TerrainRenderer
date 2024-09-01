@@ -8,7 +8,7 @@ public class Camera {
     private static float zoom = 1.0f;
 
     // Sensitivity multipliers
-    private static float panSpeed = 0.05f;   // Reduce this to slow down panning
+    private static float panSpeed = 0.003f;   // Reduce this to slow down panning
     private static float zoomSpeed = 0.05f; // Reduce this to slow down zooming
 
     private static final Matrix4f viewMatrix = new Matrix4f();
@@ -22,7 +22,7 @@ public class Camera {
 
     public static void pan(float deltaX, float deltaY) {
         // Apply panning speed
-        xOffset += deltaX * panSpeed;
+        xOffset -= deltaX * panSpeed;
         yOffset += deltaY * panSpeed;
         update();
     }

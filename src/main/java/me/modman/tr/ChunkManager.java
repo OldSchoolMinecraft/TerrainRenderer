@@ -53,12 +53,10 @@ public class ChunkManager {
             String[] coords = entry.getKey().split(",");
             int chunkX = Integer.parseInt(coords[0]);
             int chunkZ = Integer.parseInt(coords[1]);
-            if (isChunkVisible(chunkX, chunkZ))
-            {
-                chunkRenderCount++;
-                byte[] chunkData = entry.getValue();
-                chunkRenderer.renderChunk(chunkData, CHUNK_SIZE, chunkX, chunkZ);
-            }
+//            if (!isCoordinateInViewport(chunkX, chunkZ, Camera.getProjectionMatrix(), Camera.getViewMatrix(), Main.getWindowWidth(), Main.getWindowHeight())) continue;
+            chunkRenderCount++;
+            byte[] chunkData = entry.getValue();
+            chunkRenderer.renderChunk(chunkData, CHUNK_SIZE, chunkX, chunkZ);
         }
         System.out.println("Rendered " + chunkRenderCount + " visible chunks");
         GL30.glPopMatrix();
@@ -76,5 +74,32 @@ public class ChunkManager {
         return chunkCenter.x >= -1.0f && chunkCenter.x <= 1.0f &&
                 chunkCenter.y >= -1.0f && chunkCenter.y <= 1.0f &&
                 chunkCenter.z >= -1.0f && chunkCenter.z <= 1.0f;
+    }
+
+    public static boolean isCoordinateInViewport(float x, float z, Matrix4f projectionMatrix, Matrix4f viewMatrix, int windowWidth, int windowHeight)
+    {
+        // Combine view and projection matrices
+        Matrix4f mvpMatrix = new Matrix4f(projectionMatrix).mul(viewMatrix);
+
+        // Transform world coordinates to clip space
+        Vector4f clipSpace = new Vector4f(x, 0.0f, z, 1.0f).mul(mvpMatrix);
+
+        // Perform perspective divide to get normalized device coordinates (NDC)
+        if (clipSpace.w != 0.0f)
+        {
+            clipSpace.x /= clipSpace.w;
+            clipSpace.y /= clipSpace.w;
+            clipSpace.z /= clipSpace.w;
+        } else
+        {
+            return false; // Avoid division by zero
+        }
+
+        // Convert NDC to window coordinates
+        float ndcX = (clipSpace.x + 1.0f) * 0.5f * windowWidth;
+        float ndcY = (1.0f - clipSpace.y) * 0.5f * windowHeight; // Note that y is inverted
+
+        // Check if coordinates are within the viewport
+        return ndcX >= 0 && ndcX <= windowWidth && ndcY >= 0 && ndcY <= windowHeight;
     }
 }

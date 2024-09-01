@@ -123,7 +123,7 @@ public class Main {
             GL30.glClear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT);
 
             // Update camera and projection
-//            Camera.update();
+            Camera.update();
             updateOrthoProjection();
 
             // Load and render chunks
@@ -151,13 +151,17 @@ public class Main {
         int windowWidth = Main.getWindowWidth();
         int windowHeight = Main.getWindowHeight();
 
+        // Calculate the aspect ratio
         float aspectRatio = (float) windowWidth / windowHeight;
         float zoomFactor = 1.0f / zoom;
-        float left = aspectRatio * zoomFactor;
-        float right = -aspectRatio * zoomFactor;
-        float bottom = zoomFactor;
-        float top = -zoomFactor;
 
+        // Set the orthographic projection
+        float left = -aspectRatio * zoomFactor;
+        float right = aspectRatio * zoomFactor;
+        float bottom = -zoomFactor;
+        float top = zoomFactor;
+
+        // Create the projection matrix
         Matrix4f projectionMatrix = new Matrix4f().ortho(left, right, bottom, top, -1.0f, 1.0f);
         Matrix4f viewMatrix = Camera.getViewMatrix();
 

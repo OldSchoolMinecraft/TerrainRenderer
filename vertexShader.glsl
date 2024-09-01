@@ -11,6 +11,7 @@ uniform mat4 u_ViewMatrix;
 void main()
 {
     vec4 worldPosition = vec4(a_Position, 0.0, 1.0);
+    worldPosition.x = -worldPosition.x;
     vec4 viewPosition = u_ViewMatrix * worldPosition;
     gl_Position = u_ProjectionMatrix * viewPosition;
     fragColor = a_Color;
