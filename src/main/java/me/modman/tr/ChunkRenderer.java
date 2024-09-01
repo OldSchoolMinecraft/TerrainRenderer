@@ -141,11 +141,14 @@ public class ChunkRenderer
         GL30.glActiveTexture(GL30.GL_TEXTURE0);
         GL30.glBindTexture(GL30.GL_TEXTURE_2D, heightMapTextureID);
 
+        int error = GL30.glGetError();
+        if (error != GL30.GL_NO_ERROR) System.err.println("OpenGL Error before buffer update: " + error);
+
         // Bind VAO and upload vertex data to VBO
         GL30.glBindVertexArray(vaoId);
         GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, vboId);
 
-        int error = GL30.glGetError();
+        error = GL30.glGetError();
         if (error != GL30.GL_NO_ERROR) System.err.println("OpenGL Error before buffer update: " + error);
 
         GL30.glBufferSubData(GL30.GL_ARRAY_BUFFER, 0, vertexData);
