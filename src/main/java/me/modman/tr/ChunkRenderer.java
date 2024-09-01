@@ -19,13 +19,15 @@ public class ChunkRenderer
         // Create VBO
         vboId = GL30.glGenBuffers();
         GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, vboId);
-        GL30.glBufferData(GL30.GL_ARRAY_BUFFER, 16 * 16 * VERTICES_PER_QUAD * FLOATS_PER_VERTEX * Float.BYTES, GL30.GL_DYNAMIC_DRAW);
+        GL30.glBufferData(GL30.GL_ARRAY_BUFFER, 16 * 16 * VERTICES_PER_QUAD * (FLOATS_PER_VERTEX + 1) * Float.BYTES, GL30.GL_DYNAMIC_DRAW);
 
         // Define the structure of our vertex data
-        GL30.glVertexAttribPointer(0, 2, GL30.GL_FLOAT, false, FLOATS_PER_VERTEX * Float.BYTES, 0); // Position (x, y)
-        GL30.glVertexAttribPointer(1, 3, GL30.GL_FLOAT, false, FLOATS_PER_VERTEX * Float.BYTES, 2 * Float.BYTES); // Color (r, g, b)
+        GL30.glVertexAttribPointer(0, 2, GL30.GL_FLOAT, false, (FLOATS_PER_VERTEX + 1) * Float.BYTES, 0); // Position (x, y)
+        GL30.glVertexAttribPointer(1, 3, GL30.GL_FLOAT, false, (FLOATS_PER_VERTEX + 1) * Float.BYTES, 2 * Float.BYTES); // Color (r, g, b)
+        GL30.glVertexAttribPointer(2, 1, GL30.GL_FLOAT, false, (FLOATS_PER_VERTEX + 1) * Float.BYTES, 5 * Float.BYTES); // Height
         GL30.glEnableVertexAttribArray(0);
         GL30.glEnableVertexAttribArray(1);
+        GL30.glEnableVertexAttribArray(2);
 
         // Unbind VAO
         GL30.glBindVertexArray(0);
@@ -64,7 +66,7 @@ public class ChunkRenderer
         float chunkWorldZ = chunkZ * chunkSize * blockSize;
 
         // Prepare the vertex data array
-        float[] vertexData = new float[16 * 16 * VERTICES_PER_QUAD * FLOATS_PER_VERTEX];
+        float[] vertexData = new float[16 * 16 * VERTICES_PER_QUAD * (FLOATS_PER_VERTEX + 1)];
         int index = 0;
 
         for (int z = 0; z < 16; z++)
@@ -85,12 +87,15 @@ public class ChunkRenderer
                 float blockEndX = blockX + (blockSize * aspectRatio);
                 float blockEndY = blockY + blockSize;
 
+                float height = (float) blockHeight / 255f;
+
                 // Vertex 1
                 vertexData[index++] = blockX;
                 vertexData[index++] = blockY;
                 vertexData[index++] = color[0];
                 vertexData[index++] = color[1];
                 vertexData[index++] = color[2];
+                vertexData[index++] = height;
 
                 // Vertex 2
                 vertexData[index++] = blockEndX;
@@ -98,6 +103,7 @@ public class ChunkRenderer
                 vertexData[index++] = color[0];
                 vertexData[index++] = color[1];
                 vertexData[index++] = color[2];
+                vertexData[index++] = height;
 
                 // Vertex 3
                 vertexData[index++] = blockEndX;
@@ -105,6 +111,7 @@ public class ChunkRenderer
                 vertexData[index++] = color[0];
                 vertexData[index++] = color[1];
                 vertexData[index++] = color[2];
+                vertexData[index++] = height;
 
                 // Vertex 4
                 vertexData[index++] = blockX;
@@ -112,18 +119,34 @@ public class ChunkRenderer
                 vertexData[index++] = color[0];
                 vertexData[index++] = color[1];
                 vertexData[index++] = color[2];
+                vertexData[index++] = height;
             }
         }
 
         // Bind VAO and upload vertex data to VBO
         GL30.glBindVertexArray(vaoId);
         GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, vboId);
+
+        int error = GL30.glGetError();
+        if (error != GL30.GL_NO_ERROR) System.err.println("OpenGL Error before buffer update: " + error);
+
         GL30.glBufferSubData(GL30.GL_ARRAY_BUFFER, 0, vertexData);
+
+        error = GL30.glGetError();
+        if (error != GL30.GL_NO_ERROR) System.err.println("OpenGL Error before buffer update: " + error);
 
         // Use shader program and set uniform matrices
         GL30.glUseProgram(shaderProgramId);
         setShaderUniforms(); // Function to set the camera matrices in the shader
+
+        error = GL30.glGetError();
+        if (error != GL30.GL_NO_ERROR) System.err.println("OpenGL Error before buffer update: " + error);
+
         GL30.glDrawArrays(GL30.GL_QUADS, 0, 16 * 16 * VERTICES_PER_QUAD);
+
+        error = GL30.glGetError();
+        if (error != GL30.GL_NO_ERROR) System.err.println("OpenGL Error before buffer update: " + error);
+
         GL30.glUseProgram(0);
 
         // Unbind VAO

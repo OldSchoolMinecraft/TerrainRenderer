@@ -5,7 +5,8 @@ public class BlockColor
     public static float[] getColor(int blockID, int data, int height)
     {
         // Base colors for different blocks
-        float[] baseColor = switch (blockID) {
+        float[] baseColor = switch (blockID)
+        {
             case 1 -> new float[]{0.5f, 0.5f, 0.5f}; // Gray for Stone
             case 2 -> new float[]{0.49f, 0.78f, 0.25f}; // Green for Grass
             case 3 -> new float[]{0.65f, 0.16f, 0.16f}; // Brown for Dirt
@@ -29,16 +30,16 @@ public class BlockColor
         };
 
 // Enhance depth effect: Adjust color based on height
-        float depthFactor = 0.4f + (height / 255.0f) * 0.6f; // Higher range for more contrast
-        float shadowFactor = 1.0f - (height / 255.0f) * 0.3f; // Adds shadow effect based on height
+        float depthFactor = 0.4f + (height / 255.0f) * 0.5f; // Higher range for more contrast
+        float shadowFactor = 1.0f - (height / 255.0f) * 0.1f; // Adds shadow effect based on height
 
         // Apply brightness and shadow to the base color
-        return new float[]{
-                Math.min(baseColor[0] * depthFactor * shadowFactor, 1.0f),
-                Math.min(baseColor[1] * depthFactor * shadowFactor, 1.0f),
-                Math.min(baseColor[2] * depthFactor * shadowFactor, 1.0f)
-        };
-//        return baseColor;
+//        return new float[]{
+//                Math.min(baseColor[0] * depthFactor * shadowFactor, 1.0f),
+//                Math.min(baseColor[1] * depthFactor * shadowFactor, 1.0f),
+//                Math.min(baseColor[2] * depthFactor * shadowFactor, 1.0f)
+//        };
+        return baseColor;
     }
 
     private static float[] getSlabColor(int data)

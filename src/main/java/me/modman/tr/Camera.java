@@ -1,6 +1,7 @@
 package me.modman.tr;
 
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 public class Camera {
     private static float xOffset = 0.0f;
@@ -52,6 +53,11 @@ public class Camera {
 
     public static float getYOffset() {
         return yOffset;
+    }
+
+    public static Vector3f getPosition()
+    {
+        return new Vector3f(xOffset, 0, yOffset);
     }
 
     public static float getZoom() {

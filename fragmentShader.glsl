@@ -1,9 +1,10 @@
 #version 330 core
 
-in vec3 fragColor; // Color passed from the vertex shader
+in vec3 fragColor;
+out vec4 color;
 
-out vec4 color;    // Final color output
-
-void main() {
-    color = vec4(fragColor, 1.0); // Set the final color with alpha value 1.0
+void main()
+{
+    float depthFactor = 1.0; //gl_FragCoord.z / gl_FragCoord.w; // or some other depth factor based on height
+    color = vec4(fragColor * depthFactor, 1.0);
 }
