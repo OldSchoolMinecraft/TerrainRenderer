@@ -7,7 +7,7 @@ public class ChunkRenderer
     private int vaoId;
     private int vboId;
     private int shaderProgramId;
-    private final int VERTICES_PER_QUAD = 4;
+    private final int VERTICES_PER_QUAD = 6; // 6 vertices per quad (2 triangles, 3 vertices per triangle)
     private final int FLOATS_PER_VERTEX = 5; // x, y, r, g, b
 
     public void init()
@@ -39,7 +39,6 @@ public class ChunkRenderer
         } else {
             System.out.println("Shader program created successfully, ID: " + shaderProgramId);
         }
-
     }
 
     public int getShaderProgramID()
@@ -91,7 +90,8 @@ public class ChunkRenderer
 
                 float height = (float) blockHeight / 255f;
 
-                // Vertex 1
+                // Two triangles for each quad
+                // Triangle 1
                 vertexData[index++] = blockX;
                 vertexData[index++] = blockY;
                 vertexData[index++] = color[0];
@@ -99,7 +99,6 @@ public class ChunkRenderer
                 vertexData[index++] = color[2];
                 vertexData[index++] = height;
 
-                // Vertex 2
                 vertexData[index++] = blockEndX;
                 vertexData[index++] = blockY;
                 vertexData[index++] = color[0];
@@ -107,7 +106,21 @@ public class ChunkRenderer
                 vertexData[index++] = color[2];
                 vertexData[index++] = height;
 
-                // Vertex 3
+                vertexData[index++] = blockX;
+                vertexData[index++] = blockEndY;
+                vertexData[index++] = color[0];
+                vertexData[index++] = color[1];
+                vertexData[index++] = color[2];
+                vertexData[index++] = height;
+
+                // Triangle 2
+                vertexData[index++] = blockEndX;
+                vertexData[index++] = blockY;
+                vertexData[index++] = color[0];
+                vertexData[index++] = color[1];
+                vertexData[index++] = color[2];
+                vertexData[index++] = height;
+
                 vertexData[index++] = blockEndX;
                 vertexData[index++] = blockEndY;
                 vertexData[index++] = color[0];
@@ -115,7 +128,6 @@ public class ChunkRenderer
                 vertexData[index++] = color[2];
                 vertexData[index++] = height;
 
-                // Vertex 4
                 vertexData[index++] = blockX;
                 vertexData[index++] = blockEndY;
                 vertexData[index++] = color[0];
@@ -125,8 +137,9 @@ public class ChunkRenderer
             }
         }
 
+        int heightMapTextureID = ShaderUtils.generateHeightMapTexture(chunk);
         GL30.glActiveTexture(GL30.GL_TEXTURE0);
-        GL30.glBindTexture(GL30.GL_TEXTURE_2D, ShaderUtils.generateHeightMapTexture(chunk));
+        GL30.glBindTexture(GL30.GL_TEXTURE_2D, heightMapTextureID);
 
         // Bind VAO and upload vertex data to VBO
         GL30.glBindVertexArray(vaoId);
@@ -144,10 +157,13 @@ public class ChunkRenderer
         GL30.glUseProgram(shaderProgramId);
         setShaderUniforms(); // Function to set the camera matrices in the shader
 
+        int textureUniformLocation = GL30.glGetUniformLocation(shaderProgramId, "u_HeightmapTexture");
+        GL30.glUniform1i(textureUniformLocation, 0); // Texture unit 0
+
         error = GL30.glGetError();
         if (error != GL30.GL_NO_ERROR) System.err.println("OpenGL Error before buffer update: " + error);
 
-        GL30.glDrawArrays(GL30.GL_QUADS, 0, 16 * 16 * VERTICES_PER_QUAD);
+        GL30.glDrawArrays(GL30.GL_TRIANGLES, 0, 16 * 16 * VERTICES_PER_QUAD);
 
         error = GL30.glGetError();
         if (error != GL30.GL_NO_ERROR) System.err.println("OpenGL Error before buffer update: " + error);
@@ -189,9 +205,9 @@ public class ChunkRenderer
         GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, vboId);
         GL30.glBufferSubData(GL30.GL_ARRAY_BUFFER, 0, vertexData);
 
-        // Use shader program and draw the square
+        // Use shader program and draw the square as two triangles
         GL30.glUseProgram(shaderProgramId);
-        GL30.glDrawArrays(GL30.GL_QUADS, 0, 4);
+        GL30.glDrawArrays(GL30.GL_TRIANGLES, 0, 6);
         GL30.glUseProgram(0);
 
         // Unbind VAO
