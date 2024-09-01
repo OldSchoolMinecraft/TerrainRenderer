@@ -1,5 +1,7 @@
 package me.modman.tr;
 
+import org.joml.Matrix4f;
+import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
 
@@ -20,7 +22,7 @@ public class ChunkManager {
         int chunkZ = (int) (cameraY / (CHUNK_SIZE * Camera.getZoom()));
 
         // Define the range to load chunks based on the render distance
-        for (int x = -RENDER_DISTANCE; x <= RENDER_DISTANCE; x++) {
+        for (int x = -(RENDER_DISTANCE); x <= RENDER_DISTANCE; x++) {
             for (int z = -RENDER_DISTANCE; z <= RENDER_DISTANCE; z++) {
                 int currentChunkX = chunkX + x;
                 int currentChunkZ = chunkZ + z;
@@ -64,35 +66,15 @@ public class ChunkManager {
 
     public static boolean isChunkVisible(float chunkX, float chunkZ)
     {
-        // Get camera parameters
-        float cameraX = Camera.getXOffset();
-        float cameraY = Camera.getYOffset();
-        float zoom = Camera.getZoom();
+        Matrix4f viewMatrix = Camera.getViewMatrix();
+        Matrix4f projectionMatrix = Camera.getProjectionMatrix();
+        Matrix4f mvpMatrix = new Matrix4f(projectionMatrix).mul(viewMatrix);
 
-        // Calculate viewport boundaries based on zoom
-        int windowWidth = Main.getWindowWidth();
-        int windowHeight = Main.getWindowHeight();
+        Vector4f chunkCenter = new Vector4f(chunkX * CHUNK_SIZE + CHUNK_SIZE / 2.0f, chunkZ * CHUNK_SIZE + CHUNK_SIZE / 2.0f, 0.0f, 1.0f);
+        chunkCenter.mul(mvpMatrix);
 
-        // Viewport width and height in world coordinates
-        float viewportWidth = windowWidth / zoom;
-        float viewportHeight = windowHeight / zoom;
-
-        // Calculate viewport boundaries in world coordinates
-        float left = cameraX - viewportWidth / 2;
-        float right = cameraX + viewportWidth / 2;
-        float bottom = cameraY - viewportHeight / 2;
-        float top = cameraY + viewportHeight / 2;
-
-        // Calculate chunk boundaries in world coordinates
-        float chunkLeft = chunkX * CHUNK_SIZE;
-        float chunkRight = chunkLeft + CHUNK_SIZE;
-        float chunkBottom = chunkZ * CHUNK_SIZE;
-        float chunkTop = chunkBottom + CHUNK_SIZE;
-
-        // Check if the chunk is within the viewport boundaries
-        boolean withinX = chunkRight > left && chunkLeft < right;
-        boolean withinY = chunkTop > bottom && chunkBottom < top;
-
-        return withinX && withinY;
+        return chunkCenter.x >= -1.0f && chunkCenter.x <= 1.0f &&
+                chunkCenter.y >= -1.0f && chunkCenter.y <= 1.0f &&
+                chunkCenter.z >= -1.0f && chunkCenter.z <= 1.0f;
     }
 }

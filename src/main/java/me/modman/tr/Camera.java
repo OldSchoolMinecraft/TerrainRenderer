@@ -2,48 +2,68 @@ package me.modman.tr;
 
 import org.joml.Matrix4f;
 
-public class Camera
-{
-    private static float xOffset = 0;
-    private static float yOffset = 0;
-    private static float zoom = 1.0f;  // Start with default zoom
+public class Camera {
+    private static float xOffset = 0.0f;
+    private static float yOffset = 0.0f;
+    private static float zoom = 1.0f;
 
-    private static final float ZOOM_SENSITIVITY = 0.1f;
-    private static final float MIN_ZOOM = 0.1f;
-    private static final float PAN_SENSITIVITY = 0.05f;
+    // Sensitivity multipliers
+    private static float panSpeed = 0.05f;   // Reduce this to slow down panning
+    private static float zoomSpeed = 0.05f; // Reduce this to slow down zooming
 
-    public static void pan(float deltaX, float deltaY)
-    {
-        // Adjust pan direction based on zoom
-        xOffset += deltaX * PAN_SENSITIVITY / zoom;
-        yOffset -= deltaY * PAN_SENSITIVITY / zoom;  // Inverted Y-axis for OpenGL coordinate system
+    private static final Matrix4f viewMatrix = new Matrix4f();
+    private static final Matrix4f projectionMatrix = new Matrix4f();
+
+    public static void update() {
+        viewMatrix.identity();
+        viewMatrix.translate(-xOffset, -yOffset, 0);
+        viewMatrix.scale(zoom);
     }
 
-    public static void zoom(float deltaZoom)
-    {
-        float newZoom = zoom + (deltaZoom * ZOOM_SENSITIVITY);
-        if (newZoom < MIN_ZOOM) newZoom = MIN_ZOOM;
-        zoom = newZoom;
+    public static void pan(float deltaX, float deltaY) {
+        // Apply panning speed
+        xOffset += deltaX * panSpeed;
+        yOffset += deltaY * panSpeed;
+        update();
     }
 
-    public static float getXOffset()
-    {
-        return xOffset;
-    }
+    public static void zoom(float deltaZoom) {
+        // Apply zoom speed
+        zoom += deltaZoom * zoomSpeed;
 
-    public static float getYOffset()
-    {
-        return yOffset;
-    }
-
-    public static float getZoom()
-    {
-        return zoom;
+        // Prevent zoom from becoming negative or zero
+        if (zoom < 0.01f) {
+            zoom = 0.01f;
+        }
+        update();
     }
 
     public static Matrix4f getViewMatrix() {
-        Matrix4f viewMatrix = new Matrix4f();
-        viewMatrix.translate(-xOffset, -yOffset, 0); // Apply translation based on camera offset
         return viewMatrix;
+    }
+
+    public static Matrix4f getProjectionMatrix() {
+        return projectionMatrix;
+    }
+
+    public static float getXOffset() {
+        return xOffset;
+    }
+
+    public static float getYOffset() {
+        return yOffset;
+    }
+
+    public static float getZoom() {
+        return zoom;
+    }
+
+    // Optionally, methods to set speed factors dynamically
+    public static void setPanSpeed(float speed) {
+        panSpeed = speed;
+    }
+
+    public static void setZoomSpeed(float speed) {
+        zoomSpeed = speed;
     }
 }

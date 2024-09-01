@@ -153,10 +153,10 @@ public class Main {
 
         float aspectRatio = (float) windowWidth / windowHeight;
         float zoomFactor = 1.0f / zoom;
-        float left = -aspectRatio * zoomFactor;
-        float right = aspectRatio * zoomFactor;
-        float bottom = -zoomFactor;
-        float top = zoomFactor;
+        float left = aspectRatio * zoomFactor;
+        float right = -aspectRatio * zoomFactor;
+        float bottom = zoomFactor;
+        float top = -zoomFactor;
 
         Matrix4f projectionMatrix = new Matrix4f().ortho(left, right, bottom, top, -1.0f, 1.0f);
         Matrix4f viewMatrix = Camera.getViewMatrix();

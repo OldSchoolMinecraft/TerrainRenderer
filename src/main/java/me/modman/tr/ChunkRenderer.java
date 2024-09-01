@@ -47,43 +47,38 @@ public class ChunkRenderer
 
     public void renderChunk(byte[] chunkData, int chunkSize, int chunkX, int chunkZ)
     {
-        if (chunkData == null) {
+        if (chunkData == null)
             return; // No data to render
-        }
 
-        // Get the zoom factor
+        // Get the zoom factor (if needed for scaling purposes)
         float zoom = Camera.getZoom();
 
-        // Get the window width and height
-        int windowWidth = Main.getWindowWidth();
-        int windowHeight = Main.getWindowHeight();
+        // Calculate the block size relative to the zoom level
+        float baseBlockSize = 1.0f / 16.0f; // Base block size assuming a unit size per chunk (normalized)
+        float blockSize = baseBlockSize * zoom;
 
-        // Calculate the block size
-        float aspectRatio = (float) Main.getWindowWidth() / Main.getWindowHeight();
-        float baseSize = Math.min(windowWidth, windowHeight);
-        float blockSize = (zoom / baseSize) * windowWidth;
-//        float blockSize = zoom * Math.min(windowWidth, windowHeight) / (float) Math.max(windowWidth, windowHeight);
-
-        // Calculate the chunk's position in the world, adjusted for zoom and camera offset
-        float chunkWorldX = (chunkX * chunkSize - Camera.getXOffset()) * blockSize / aspectRatio;
-        float chunkWorldZ = (chunkZ * chunkSize - Camera.getYOffset()) * blockSize;
+        // Calculate the chunk's world position
+        float chunkWorldX = chunkX * chunkSize * baseBlockSize;
+        float chunkWorldZ = chunkZ * chunkSize * baseBlockSize;
 
         // Prepare the vertex data array
         float[] vertexData = new float[16 * 16 * VERTICES_PER_QUAD * FLOATS_PER_VERTEX];
         int index = 0;
 
-        for (int z = 0; z < 16; z++) {
-            for (int x = 0; x < 16; x++) {
+        for (int z = 0; z < 16; z++)
+        {
+            for (int x = 0; x < 16; x++)
+            {
                 int blockIndex = x + z * 16; // Calculate index for the block in chunkData
                 byte blockID = chunkData[blockIndex]; // Get the block ID
                 float[] color = BlockColor.getColor(blockID); // Get the color for this block type
 
-                // Calculate block's position on the screen
-                float blockX = -(chunkWorldX + (x * blockSize / aspectRatio));
+                // Calculate the block's position in the world
+                float blockX = chunkWorldX + (x * blockSize);
                 float blockY = chunkWorldZ + (z * blockSize);
 
                 // Ensure that the block is drawn as a square
-                float blockEndX = blockX + blockSize / aspectRatio;
+                float blockEndX = blockX + blockSize;
                 float blockEndY = blockY + blockSize;
 
                 // Vertex 1
@@ -121,13 +116,24 @@ public class ChunkRenderer
         GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, vboId);
         GL30.glBufferSubData(GL30.GL_ARRAY_BUFFER, 0, vertexData);
 
-        // Use shader program and draw the quads
+        // Use shader program and set uniform matrices
         GL30.glUseProgram(shaderProgramId);
+        setShaderUniforms(); // Function to set the camera matrices in the shader
         GL30.glDrawArrays(GL30.GL_QUADS, 0, 16 * 16 * VERTICES_PER_QUAD);
         GL30.glUseProgram(0);
 
         // Unbind VAO
         GL30.glBindVertexArray(0);
+    }
+
+    private void setShaderUniforms()
+    {
+        int viewMatrixLocation = GL30.glGetUniformLocation(shaderProgramId, "u_ViewMatrix");
+        int projectionMatrixLocation = GL30.glGetUniformLocation(shaderProgramId, "u_ProjectionMatrix");
+
+        // Set the matrices from the Camera
+        GL30.glUniformMatrix4fv(viewMatrixLocation, false, Camera.getViewMatrix().get(new float[16]));
+        GL30.glUniformMatrix4fv(projectionMatrixLocation, false, Camera.getProjectionMatrix().get(new float[16]));
     }
 
     public void renderSimpleSquare(float centerX, float centerY, float size, float[] color) {
@@ -159,5 +165,4 @@ public class ChunkRenderer
         // Unbind VAO
         GL30.glBindVertexArray(0);
     }
-
 }
