@@ -2,7 +2,6 @@
 
 layout(location = 0) in vec2 a_Position;
 layout(location = 1) in vec3 a_Color;
-layout(location = 2) in float a_Height;
 
 uniform sampler2D u_HeightmapTexture;
 uniform mat4 u_ProjectionMatrix;
@@ -22,5 +21,5 @@ void main()
     texCoord = (a_Position + 1.0) * 0.5; // Adjust this calculation based on your needs
 
     float height = texture(u_HeightmapTexture, texCoord).r; // Red channel holds the height data
-    fragColor = a_Color * height;
+    fragColor = a_Color;
 }

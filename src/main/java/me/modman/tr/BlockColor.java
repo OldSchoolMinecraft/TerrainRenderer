@@ -2,6 +2,8 @@ package me.modman.tr;
 
 public class BlockColor
 {
+    private static boolean simpleColors = false;
+
     public static float[] getColor(int blockID, int data, int height)
     {
         // Base colors for different blocks
@@ -29,9 +31,26 @@ public class BlockColor
             default -> new float[]{1.0f, 1.0f, 1.0f}; // White for Unknown
         };
 
+        int minHeight = 60;
+        int maxHeight = 80;
+        float normalizedHeight = (float) (height - minHeight) / (maxHeight - minHeight);
+        float mappedHeight = normalizedHeight * 255.0f;
+
+        // Enhance depth effect: Adjust color based on height
+        float depthFactor = 0.4f + (mappedHeight / 255.0f) * 0.5f; // Higher range for more contrast
+
+        // Apply brightness to the base color
+        if (simpleColors)
+            return baseColor;
+        else return new float[] {
+            Math.min(baseColor[0] * depthFactor, 1.0f),
+            Math.min(baseColor[1] * depthFactor, 1.0f),
+            Math.min(baseColor[2] * depthFactor, 1.0f)
+        };
+//        return baseColor;
 // Enhance depth effect: Adjust color based on height
-        float depthFactor = 0.4f + (height / 255.0f) * 0.5f; // Higher range for more contrast
-        float shadowFactor = 1.0f - (height / 255.0f) * 0.1f; // Adds shadow effect based on height
+//        float depthFactor = 0.4f + (height / 255.0f) * 0.8f; // Higher range for more contrast
+//        float shadowFactor = 1.0f; //1.0f - (height / 255.0f) * 0.1f; // Adds shadow effect based on height
 
         // Apply brightness and shadow to the base color
 //        return new float[]{
@@ -39,7 +58,7 @@ public class BlockColor
 //                Math.min(baseColor[1] * depthFactor * shadowFactor, 1.0f),
 //                Math.min(baseColor[2] * depthFactor * shadowFactor, 1.0f)
 //        };
-        return baseColor;
+//        return baseColor;
     }
 
     private static float[] getSlabColor(int data)
