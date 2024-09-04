@@ -118,6 +118,9 @@ public class Main {
         };
         try (GLFWScrollCallback callback = GLFW.glfwSetScrollCallback(window, scrollCallback)) {};
 
+        GLFWWindowSizeCallbackI resizeCallback = (window, width, height) -> updateOrthoProjection();
+        try (GLFWWindowSizeCallback callback = GLFW.glfwSetWindowSizeCallback(window, resizeCallback)) {};
+
         // Main loop
         while (!GLFW.glfwWindowShouldClose(window))
         {
