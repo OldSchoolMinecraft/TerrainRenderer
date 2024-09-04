@@ -4,11 +4,11 @@ plugins {
     id 'java'
 }
 
-group = 'com.oldschoolminecraft'
-version = '1.0-SNAPSHOT'
-
 repositories {
     mavenCentral()
+    maven {
+        url "https://repo.spongepowered.org/repository/maven-public/"
+    }
 }
 
 project.ext.lwjglVersion = "3.3.4"
@@ -52,5 +52,5 @@ dependencies {
     runtimeOnly "org.lwjgl:lwjgl-stb::$lwjglNatives"
 
     implementation "com.google.guava:guava:33.3.0-jre"
-    implementation 'org.joml:joml:1.10.5'
+    implementation "org.joml:joml:1.10.5"
 }

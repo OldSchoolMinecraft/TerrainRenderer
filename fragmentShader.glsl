@@ -1,15 +1,37 @@
 #version 330 core
 
 in vec3 fragColor;
-in vec2 texCoord;
+in float blockID;
+in vec2 chunkOffset;
+
+uniform float u_Time;
+uniform vec2 u_ScreenResolution;
 
 out vec4 color;
 
 void main() {
-    // Sample the heightmap texture
-    //float height = texture(u_HeightmapTexture, texCoord).r; // Red channel holds the height data
+    if (blockID == 8 || blockID == 9) {
+        // Calculate normalized screen coordinates
+        vec2 uv = gl_FragCoord.xy / u_ScreenResolution;
 
-    // Use the height to modify the color or shading
-    //float depthFactor = height; // Use height as a depth factor for coloring
-    color = vec4(fragColor, 1.0);
+        // Pixelation factor (controls the blockiness)
+        float pixelation = 50.0; // Adjust for pixel size
+        vec2 uvPixelated = floor(uv * pixelation) / pixelation;
+
+        // Diagonal lines pattern
+        float lineThickness = 0.22; // Thickness of the diagonal lines
+        float diagonal = abs(mod(uvPixelated.x + uvPixelated.y + u_Time * 0.5, 1.0) - 0.5) * 2.0;
+
+        // Smoothstep to soften the lines
+        float pattern = smoothstep(lineThickness - 0.01, lineThickness + 0.01, diagonal);
+
+        // Apply the pattern to the color
+        float waveSpeed = 0.03;
+        vec3 wavedColor = fragColor * (1.0 + pattern * waveSpeed);
+
+        // Set the final color output
+        color = vec4(wavedColor, 1.0);
+    } else {
+        color = vec4(fragColor, 1.0);
+    }
 }

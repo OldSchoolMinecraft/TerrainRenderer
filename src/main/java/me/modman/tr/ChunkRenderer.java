@@ -23,12 +23,12 @@ public class ChunkRenderer
         // Create VBO
         vboId = GL30.glGenBuffers();
         GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, vboId);
-        GL30.glBufferData(GL30.GL_ARRAY_BUFFER, 16 * 16 * VERTICES_PER_QUAD * (FLOATS_PER_VERTEX) * Float.BYTES, GL30.GL_DYNAMIC_DRAW);
+        GL30.glBufferData(GL30.GL_ARRAY_BUFFER, 16 * 16 * VERTICES_PER_QUAD * (FLOATS_PER_VERTEX + 1) * Float.BYTES, GL30.GL_DYNAMIC_DRAW);
 
         // Define the structure of our vertex data
-        GL30.glVertexAttribPointer(0, 2, GL30.GL_FLOAT, false, (FLOATS_PER_VERTEX ) * Float.BYTES, 0); // Position (x, y)
-        GL30.glVertexAttribPointer(1, 3, GL30.GL_FLOAT, false, (FLOATS_PER_VERTEX) * Float.BYTES, 2 * Float.BYTES); // Color (r, g, b)
-//        GL30.glVertexAttribPointer(2, 1, GL30.GL_FLOAT, false, (FLOATS_PER_VERTEX + 1) * Float.BYTES, 5 * Float.BYTES); // Height
+        GL30.glVertexAttribPointer(0, 2, GL30.GL_FLOAT, false, (FLOATS_PER_VERTEX + 1) * Float.BYTES, 0); // Position (x, y)
+        GL30.glVertexAttribPointer(1, 3, GL30.GL_FLOAT, false, (FLOATS_PER_VERTEX + 1) * Float.BYTES, 2 * Float.BYTES); // Color (r, g, b)
+        GL30.glVertexAttribPointer(2, 1, GL30.GL_FLOAT, false, (FLOATS_PER_VERTEX + 1) * Float.BYTES, 5 * Float.BYTES); // block ID
         GL30.glEnableVertexAttribArray(0);
         GL30.glEnableVertexAttribArray(1);
         GL30.glEnableVertexAttribArray(2);
@@ -43,13 +43,6 @@ public class ChunkRenderer
         } else {
             System.out.println("Shader program created successfully, ID: " + defaultShaderProgramID);
         }
-
-//        waterShaderProgramID = ShaderUtils.createShaderProgram("vertexShader.glsl", "waterFragmentShader.glsl");
-//        if (waterShaderProgramID == -1) {
-//            System.err.println("Failed to create shader program");
-//        } else {
-//            System.out.println("Shader program created successfully, ID: " + defaultShaderProgramID);
-//        }
     }
 
     public int getShaderProgramID()
@@ -78,7 +71,7 @@ public class ChunkRenderer
         float chunkWorldZ = chunkZ * chunkSize * blockSize;
 
         // Prepare the vertex data array
-        float[] vertexData = new float[16 * 16 * VERTICES_PER_QUAD * (FLOATS_PER_VERTEX)];
+        float[] vertexData = new float[16 * 16 * VERTICES_PER_QUAD * (FLOATS_PER_VERTEX + 1)];
         int index = 0;
 
         for (int z = 0; z < 16; z++)
@@ -90,7 +83,7 @@ public class ChunkRenderer
                 byte blockData = chunkData[blockIndex].getData();
                 byte blockHeight = chunkData[blockIndex].getHeight();
 //                float[] color = BlockColor.getColor(blockID, blockData, blockHeight); // Get the color for this block type
-                float[] color = new ColorHelper(blockID, blockData, x, z, blockHeight).linearInterpolation().sine(initMS).getFinalColor();
+                float[] color = new ColorHelper(blockID, blockData, x * chunkSize, z * chunkSize, blockHeight).noise().linearInterpolation().specularLight().getFinalColor();
 
                 // Calculate the block's position in the world
                 float blockX = (chunkWorldX + (x * blockSize)) / aspectRatio;
@@ -109,21 +102,21 @@ public class ChunkRenderer
                 vertexData[index++] = color[0];
                 vertexData[index++] = color[1];
                 vertexData[index++] = color[2];
-//                vertexData[index++] = height;
+                vertexData[index++] = blockID;
 
                 vertexData[index++] = blockEndX;
                 vertexData[index++] = blockY;
                 vertexData[index++] = color[0];
                 vertexData[index++] = color[1];
                 vertexData[index++] = color[2];
-//                vertexData[index++] = height;
+                vertexData[index++] = blockID;
 
                 vertexData[index++] = blockX;
                 vertexData[index++] = blockEndY;
                 vertexData[index++] = color[0];
                 vertexData[index++] = color[1];
                 vertexData[index++] = color[2];
-//                vertexData[index++] = height;
+                vertexData[index++] = blockID;
 
                 // Triangle 2
                 vertexData[index++] = blockEndX;
@@ -131,27 +124,23 @@ public class ChunkRenderer
                 vertexData[index++] = color[0];
                 vertexData[index++] = color[1];
                 vertexData[index++] = color[2];
-//                vertexData[index++] = height;
+                vertexData[index++] = blockID;
 
                 vertexData[index++] = blockEndX;
                 vertexData[index++] = blockEndY;
                 vertexData[index++] = color[0];
                 vertexData[index++] = color[1];
                 vertexData[index++] = color[2];
-//                vertexData[index++] = height;
+                vertexData[index++] = blockID;
 
                 vertexData[index++] = blockX;
                 vertexData[index++] = blockEndY;
                 vertexData[index++] = color[0];
                 vertexData[index++] = color[1];
                 vertexData[index++] = color[2];
-//                vertexData[index++] = height;
+                vertexData[index++] = blockID;
             }
         }
-
-        int heightMapTextureID = ShaderUtils.generateHeightMapTexture(chunk);
-        GL30.glActiveTexture(GL30.GL_TEXTURE0);
-        GL30.glBindTexture(GL30.GL_TEXTURE_2D, heightMapTextureID);
 
         int error = GL30.glGetError();
         if (error != GL30.GL_NO_ERROR) System.err.println("OpenGL Error before buffer update: " + error);
@@ -172,8 +161,14 @@ public class ChunkRenderer
         GL30.glUseProgram(defaultShaderProgramID);
         setShaderUniforms(); // Function to set the camera matrices in the shader
 
-        int textureUniformLocation = GL30.glGetUniformLocation(defaultShaderProgramID, "u_HeightmapTexture");
-        GL30.glUniform1i(textureUniformLocation, 0); // Texture unit 0
+        // Generate a unique offset for the chunk
+        float chunkOffsetX = (float) (chunkX * 0.1); // Adjust the multiplier for the desired effect
+        float chunkOffsetY = (float) (chunkZ * 0.1); // Adjust the multiplier for the desired effect
+
+        int chunkOffsetMatrixLocation = GL30.glGetUniformLocation(defaultShaderProgramID, "u_ChunkOffset");
+        GL30.glUniform2f(chunkOffsetMatrixLocation, chunkOffsetX, chunkOffsetY);
+        int chunkSeedMatrixLocation = GL30.glGetUniformLocation(defaultShaderProgramID, "u_ChunkSeed");
+        GL30.glUniform1f(chunkSeedMatrixLocation, chunkX * 1000f * chunkZ);
 
         error = GL30.glGetError();
         if (error != GL30.GL_NO_ERROR) System.err.println("OpenGL Error before buffer update: " + error);
@@ -193,10 +188,14 @@ public class ChunkRenderer
     {
         int viewMatrixLocation = GL30.glGetUniformLocation(defaultShaderProgramID, "u_ViewMatrix");
         int projectionMatrixLocation = GL30.glGetUniformLocation(defaultShaderProgramID, "u_ProjectionMatrix");
+        int timeMatrixLocation = GL30.glGetUniformLocation(defaultShaderProgramID, "u_Time");
+        int resolutionMatrixLocation = GL30.glGetUniformLocation(defaultShaderProgramID, "u_ScreenResolution");
 
         // Set the matrices from the Camera
         GL30.glUniformMatrix4fv(viewMatrixLocation, false, Camera.getViewMatrix().get(new float[16]));
         GL30.glUniformMatrix4fv(projectionMatrixLocation, false, Camera.getProjectionMatrix().get(new float[16]));
+        GL30.glUniform1f(timeMatrixLocation, ((System.currentTimeMillis() - initMS) / 1000.0f));
+        GL30.glUniform2f(resolutionMatrixLocation, Main.getWindowWidth(), Main.getWindowHeight());
     }
 
     public void renderSimpleSquare(float centerX, float centerY, float size, float[] color) {

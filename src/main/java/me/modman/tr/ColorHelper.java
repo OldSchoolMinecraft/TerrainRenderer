@@ -1,11 +1,14 @@
 package me.modman.tr;
 
+import java.util.Random;
+
 public class ColorHelper
 {
     private boolean linearInterpolation;
     private boolean specularLightSim;
     private boolean noise;
     private boolean sine;
+    private boolean dirFlow;
     private int blockID;
     private int data;
     private int x, z;
@@ -46,10 +49,18 @@ public class ColorHelper
         return this;
     }
 
-    private float[] getWaterColorWithNoise(float[] baseWaterColor, int x, int z)
+    public ColorHelper dirFlow()
     {
+        dirFlow = true;
+        return this;
+    }
+
+    private float[] getWaterColorWithNoise(float[] baseWaterColor, int x, int z, float time)
+    {
+
         float noise = generateNoise(x, z);
-        float noiseFactor = 0.05f * noise;
+        double wave = Math.sin((x + z) * (WAVE_FREQUENCY * 0.2f) + time) * noise;
+        float noiseFactor = (float) (0.1f * wave);
 
         return new float[]{
                 Math.min(baseWaterColor[0] + noiseFactor, 1.0f),
@@ -58,11 +69,14 @@ public class ColorHelper
         };
     }
 
-    private float[] getWaterColorWithReflection(float[] baseWaterColor, int x, int z)
+    private float[] getWaterColorWithReflection(float[] baseWaterColor, int x, int z, float time)
     {
+        // Add time-based offset to create movement in the reflection effect
+        float speed = 0.5f; // Adjust the speed of movement
+        float timeOffset = time * speed;
 
-        // Calculate reflection effect based on position
-        float reflectionIntensity = (float) (Math.cos((x + z) * 0.1) * 0.1); // Vary by position
+        // Calculate reflection effect based on position and time
+        float reflectionIntensity = (float) (Math.cos((x + z) * 0.1 + timeOffset) * 0.1); // Vary by position and time
         float highlight = 0.1f; // Reflection strength
 
         return new float[]{
@@ -84,15 +98,23 @@ public class ColorHelper
         };
     }
 
+    private static final long NOISE_SEED = new Random().nextLong(1L, Long.MAX_VALUE); // Seed for noise generation
+    private static final float WAVE_FREQUENCY = 0.05f; // Controls the wave frequency
+    private static final float NOISE_FREQUENCY = 0.1f; // Controls the scale of the noise pattern
+    private static final float AMPLITUDE = 0.5f; // Controls the wave amplitude
     private float[] getWaterWithTimeSine(float[] baseWaterColor, int x, int z, float time)
     {
-        // Time-based sine wave to animate the water
-        float animationFactor = 0.05f * (float) Math.sin((x * 0.1f) + (z * 0.1f) + time);
+        double noiseValue = OpenSimplex2S.noise2(NOISE_SEED, x * NOISE_FREQUENCY, z * NOISE_FREQUENCY);
 
+        // Apply sine wave for wave motion, combining noise with sine wave
+        double wave = Math.sin((x + z) * WAVE_FREQUENCY + time) * noiseValue;
+
+        // Modulate water color with the wave effect
+        float waveIntensity = 0.2f; // Adjust this for how pronounced the waves should be
         return new float[]{
-                Math.min(baseWaterColor[0] + animationFactor, 1.0f),
-                Math.min(baseWaterColor[1] + animationFactor, 1.0f),
-                Math.min(baseWaterColor[2] + animationFactor, 1.0f)
+                Math.min(baseWaterColor[0] + (float) wave * waveIntensity, 1.0f),
+                Math.min(baseWaterColor[1] + (float) wave * waveIntensity, 1.0f),
+                Math.min(baseWaterColor[2] + (float) wave * waveIntensity, 1.0f)
         };
     }
 
@@ -102,6 +124,7 @@ public class ColorHelper
         {
             case 1 -> new float[]{0.5f, 0.5f, 0.5f}; // Gray for Stone
             case 2 -> new float[]{0.49f, 0.78f, 0.25f}; // Green for Grass
+//            case 2 -> new float[]{0.016f, 0.8f, 0.376f}; // Green for Grass
             case 3 -> new float[]{0.65f, 0.16f, 0.16f}; // Brown for Dirt
             case 4 -> new float[]{0.5f, 0.5f, 0.5f}; // Gray for Cobblestone
             case 5 -> new float[]{0.57f, 0.48f, 0.28f}; // Oak plank
@@ -112,6 +135,7 @@ public class ColorHelper
             case 13 -> new float[]{0.75f, 0.75f, 0.75f}; // Light Grey for Gravel
             case 17 -> new float[]{0.58f, 0.45f, 0.24f}; // Log
             case 18 -> new float[]{0.41f, 0.54f, 0.09f}; // Green for Leaves
+//            case 18 -> new float[]{0.08f, 0.294f, 0.188f}; // Green for Leaves
             case 35 -> getWoolColor(data); // Dynamic wool color
             case 24 -> new float[]{0.94f, 0.9f, 0.55f}; // Tan for Sandstone
             case 43 -> new float[]{0.66f, 0.66f, 0.66f}; // double slab block
@@ -145,11 +169,14 @@ public class ColorHelper
 
     private float[] pickWaterColor(float[] baseColor)
     {
+        float time = ((System.currentTimeMillis() - initMS) / 1000.0f);
+
         float[] newColor = baseColor;
-        if (specularLightSim) newColor = getWaterColorWithReflection(newColor, x, z);
-        if (sine) newColor = getWaterWithTimeSine(newColor, x, z, ((System.currentTimeMillis() - initMS) / 1000.0f));
         if (linearInterpolation) newColor = interpolate(newColor, 60, 80);
-        if (noise) newColor = getWaterColorWithNoise(newColor, x, z);
+        if (specularLightSim) newColor = getWaterColorWithReflection(newColor, x, z, time);
+//        if (noise) newColor = getWaterColorWithNoise(newColor, x, z, time);
+        if (sine) newColor = getWaterWithTimeSine(newColor, x, z, time);
+        if (dirFlow) newColor = getWaterColorWithDirFlow(newColor, x, z);
         return newColor;
     }
 
