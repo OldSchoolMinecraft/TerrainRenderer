@@ -77,7 +77,7 @@ public class ColorHelper
 
         // Calculate reflection effect based on position and time
         float reflectionIntensity = (float) (Math.cos((x + z) * 0.1 + timeOffset) * 0.1); // Vary by position and time
-        float highlight = 0.1f; // Reflection strength
+        float highlight = 0.05f; // Reflection strength
 
         return new float[]{
                 Math.min(baseWaterColor[0] + reflectionIntensity * highlight, 1.0f),
@@ -174,7 +174,7 @@ public class ColorHelper
         float[] newColor = baseColor;
         if (linearInterpolation) newColor = interpolate(newColor, 60, 80);
         if (specularLightSim) newColor = getWaterColorWithReflection(newColor, x, z, time);
-//        if (noise) newColor = getWaterColorWithNoise(newColor, x, z, time);
+        if (noise) newColor = getWaterColorWithNoise(newColor, x, z, time);
         if (sine) newColor = getWaterWithTimeSine(newColor, x, z, time);
         if (dirFlow) newColor = getWaterColorWithDirFlow(newColor, x, z);
         return newColor;
