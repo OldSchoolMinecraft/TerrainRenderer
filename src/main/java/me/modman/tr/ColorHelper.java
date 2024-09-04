@@ -1,5 +1,7 @@
 package me.modman.tr;
 
+import me.modman.tr.math.LibGDXMath;
+
 import java.util.Random;
 
 public class ColorHelper
@@ -76,7 +78,7 @@ public class ColorHelper
         float timeOffset = time * speed;
 
         // Calculate reflection effect based on position and time
-        float reflectionIntensity = (float) (Math.cos((x + z) * 0.1 + timeOffset) * 0.1); // Vary by position and time
+        float reflectionIntensity = (float) (LibGDXMath.cos((float) ((x + z) * 0.1 + timeOffset)) * 0.1); // Vary by position and time
         float highlight = 0.05f; // Reflection strength
 
         return new float[]{
@@ -107,7 +109,7 @@ public class ColorHelper
         double noiseValue = OpenSimplex2S.noise2(NOISE_SEED, x * NOISE_FREQUENCY, z * NOISE_FREQUENCY);
 
         // Apply sine wave for wave motion, combining noise with sine wave
-        double wave = Math.sin((x + z) * WAVE_FREQUENCY + time) * noiseValue;
+        double wave = LibGDXMath.sin((x + z) * WAVE_FREQUENCY + time) * noiseValue;
 
         // Modulate water color with the wave effect
         float waveIntensity = 0.2f; // Adjust this for how pronounced the waves should be
