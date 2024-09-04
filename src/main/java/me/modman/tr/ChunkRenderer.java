@@ -10,9 +10,12 @@ public class ChunkRenderer
     private int waterShaderProgramID;
     private final int VERTICES_PER_QUAD = 6; // 6 vertices per quad (2 triangles, 3 vertices per triangle)
     private final int FLOATS_PER_VERTEX = 5; // x, y, r, g, b
+    private long initMS;
 
     public void init()
     {
+        initMS = System.currentTimeMillis();
+
         // Create VAO
         vaoId = GL30.glGenVertexArrays();
         GL30.glBindVertexArray(vaoId);
@@ -86,7 +89,8 @@ public class ChunkRenderer
                 byte blockID = chunkData[blockIndex].getID();
                 byte blockData = chunkData[blockIndex].getData();
                 byte blockHeight = chunkData[blockIndex].getHeight();
-                float[] color = BlockColor.getColor(blockID, blockData, blockHeight); // Get the color for this block type
+//                float[] color = BlockColor.getColor(blockID, blockData, blockHeight); // Get the color for this block type
+                float[] color = new ColorHelper(blockID, blockData, x, z, blockHeight).linearInterpolation().sine(initMS).getFinalColor();
 
                 // Calculate the block's position in the world
                 float blockX = (chunkWorldX + (x * blockSize)) / aspectRatio;
