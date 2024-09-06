@@ -186,30 +186,6 @@ public class Main {
         }
     }
 
-    public static void updateLightingUniforms()
-    {
-        int shaderProgramId = chunkRenderer.getShaderProgramID();
-
-        // Correct uniform names based on the GLSL shader
-        int lightDirectionLocation = ShaderUtils.getUniformLocation(shaderProgramId, "lightDirection");
-        int lightColorLocation = ShaderUtils.getUniformLocation(shaderProgramId, "lightColor");
-        int ambientStrengthLocation = ShaderUtils.getUniformLocation(shaderProgramId, "ambientStrength");
-        int shadowIntensityLocation = ShaderUtils.getUniformLocation(shaderProgramId, "shadowIntensity");
-
-        // Example values for uniforms
-        Vector3f lightDirection = new Vector3f(1.0f, 1.0f, 1.0f); // Light direction
-        Vector3f lightColor = new Vector3f(1.0f, 1.0f, 1.0f);   // Light color
-        float ambientStrength = 0.1f;                             // Ambient light strength
-        float shadowIntensity = 0.5f;                             // Shadow intensity
-
-        GL30.glUseProgram(shaderProgramId);
-        GL30.glUniform3fv(lightDirectionLocation, lightDirection.get(FloatBuffer.wrap(new float[3])));
-        GL30.glUniform3fv(lightColorLocation, lightColor.get(FloatBuffer.wrap(new float[3])));
-        GL30.glUniform1f(ambientStrengthLocation, ambientStrength);
-        GL30.glUniform1f(shadowIntensityLocation, shadowIntensity);
-        GL30.glUseProgram(0);
-    }
-
     public static double[] getCursorPos(long windowID) {
         DoubleBuffer posX = BufferUtils.createDoubleBuffer(1);
         DoubleBuffer posY = BufferUtils.createDoubleBuffer(1);
