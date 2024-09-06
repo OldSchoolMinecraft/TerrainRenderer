@@ -142,20 +142,20 @@ public class ChunkRenderer
             }
         }
 
-        int error = GL30.glGetError();
-        if (error != GL30.GL_NO_ERROR) System.err.println("OpenGL Error before buffer update: " + error);
+//        int error = GL30.glGetError();
+//        if (error != GL30.GL_NO_ERROR) System.err.println("OpenGL Error before buffer update: " + error);
 
         // Bind VAO and upload vertex data to VBO
         GL30.glBindVertexArray(vaoId);
         GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, vboId);
 
-        error = GL30.glGetError();
-        if (error != GL30.GL_NO_ERROR) System.err.println("OpenGL Error before buffer update: " + error);
+//        error = GL30.glGetError();
+//        if (error != GL30.GL_NO_ERROR) System.err.println("OpenGL Error before buffer update: " + error);
 
         GL30.glBufferSubData(GL30.GL_ARRAY_BUFFER, 0, vertexData);
 
-        error = GL30.glGetError();
-        if (error != GL30.GL_NO_ERROR) System.err.println("OpenGL Error before buffer update: " + error);
+//        error = GL30.glGetError();
+//        if (error != GL30.GL_NO_ERROR) System.err.println("OpenGL Error before buffer update: " + error);
 
         // Use shader program and set uniform matrices
         GL30.glUseProgram(defaultShaderProgramID);
@@ -170,13 +170,13 @@ public class ChunkRenderer
         int chunkSeedMatrixLocation = GL30.glGetUniformLocation(defaultShaderProgramID, "u_ChunkSeed");
         GL30.glUniform1f(chunkSeedMatrixLocation, chunkX * 1000f * chunkZ);
 
-        error = GL30.glGetError();
-        if (error != GL30.GL_NO_ERROR) System.err.println("OpenGL Error before buffer update: " + error);
+//        error = GL30.glGetError();
+//        if (error != GL30.GL_NO_ERROR) System.err.println("OpenGL Error before buffer update: " + error);
 
         GL30.glDrawArrays(GL30.GL_TRIANGLES, 0, 16 * 16 * VERTICES_PER_QUAD);
 
-        error = GL30.glGetError();
-        if (error != GL30.GL_NO_ERROR) System.err.println("OpenGL Error before buffer update: " + error);
+//        error = GL30.glGetError();
+//        if (error != GL30.GL_NO_ERROR) System.err.println("OpenGL Error before buffer update: " + error);
 
         GL30.glUseProgram(0);
 
