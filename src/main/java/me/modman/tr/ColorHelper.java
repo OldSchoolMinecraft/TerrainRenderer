@@ -220,6 +220,6 @@ public class ColorHelper
 
     private float generateNoise(int x, int z)
     {
-        return (float) (Math.sin(x * 12.9898 + z * 78.233) * 43758.5453 % 1.0);
+        return (float) (LibGDXMath.sin((float) (x * 12.9898 + z * 78.233)) * 43758.5453 % 1.0);
     }
 }
