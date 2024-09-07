@@ -1,5 +1,6 @@
-package me.modman.tr;
+package me.modman.tr.util;
 
+import me.modman.tr.chunk.Chunk;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL30;
 
@@ -120,12 +121,15 @@ public class ShaderUtils {
         return textureID; // Return the texture ID to use in your shaders
     }
 
-    private static String readFile(String filePath) {
-        try {
-            return new String(Files.readAllBytes(Paths.get(filePath)));
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+    public static String readFile(String filePath)
+    {
+        String str;
+        try
+        {
+            str = new String(Files.readAllBytes(Paths.get(filePath)));
+        } catch (IOException excp) {
+            throw new RuntimeException("Error reading file [" + filePath + "]", excp);
         }
+        return str;
     }
 }

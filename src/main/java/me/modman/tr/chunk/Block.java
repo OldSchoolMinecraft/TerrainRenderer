@@ -1,4 +1,4 @@
-package me.modman.tr;
+package me.modman.tr.chunk;
 
 public class Block
 {

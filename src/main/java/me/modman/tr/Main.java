@@ -1,17 +1,20 @@
 package me.modman.tr;
 
+import imgui.ImGui;
+import me.modman.tr.chunk.ChunkManager;
+import me.modman.tr.chunk.ChunkRenderer;
+import me.modman.tr.gui.DebugUI;
+import me.modman.tr.gui.SimpleGUI;
+import me.modman.tr.util.Camera;
+import me.modman.tr.util.ShaderUtils;
 import org.joml.Matrix4f;
-import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL30;
-import org.lwjgl.opengl.GL30C;
-import org.lwjgl.opengl.GLUtil;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
-import java.awt.*;
 import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 
@@ -41,6 +44,8 @@ public class Main {
     }
 
     private static ChunkRenderer chunkRenderer = new ChunkRenderer();
+    private static boolean usingGUI;
+    private static SimpleGUI currentGUI;
 
     public static void main(String[] args)
     {
@@ -79,7 +84,21 @@ public class Main {
         chunkRenderer.init();
 
         // Set up key callback
-        GLFWKeyCallbackI keyCallback = (window, key, scancode, action, mods) -> {};
+        GLFWKeyCallbackI keyCallback = (window, key, scancode, action, mods) ->
+        {
+            if (key == GLFW.GLFW_KEY_GRAVE_ACCENT && action == GLFW.GLFW_RELEASE)
+            {
+                if (currentGUI instanceof DebugUI)
+                {
+                    currentGUI = null;
+                    usingGUI = false;
+                    return;
+                }
+                currentGUI = new DebugUI();
+                currentGUI.init();
+                usingGUI = true;
+            }
+        };
         try (GLFWKeyCallback callback = GLFW.glfwSetKeyCallback(window, keyCallback)) {}
 
         // Set up mouse callback
@@ -98,6 +117,7 @@ public class Main {
 
         GLFWMouseButtonCallbackI mouseButtonCallback = (window, button, action, mods) ->
         {
+            if (usingGUI) return;
             if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT)
             {
                 if (action == GLFW.GLFW_PRESS)
@@ -113,7 +133,7 @@ public class Main {
 
         GLFWScrollCallbackI scrollCallback = (window, xoffset, yoffset) ->
         {
-            Camera.zoom((float) yoffset);
+            if (!usingGUI) Camera.zoom((float) yoffset);
             updateOrthoProjection();
         };
         try (GLFWScrollCallback callback = GLFW.glfwSetScrollCallback(window, scrollCallback)) {};
@@ -121,23 +141,35 @@ public class Main {
         GLFWWindowSizeCallbackI resizeCallback = (window, width, height) -> updateOrthoProjection();
         try (GLFWWindowSizeCallback callback = GLFW.glfwSetWindowSizeCallback(window, resizeCallback)) {};
 
+        ImGui.createContext();
+        ImGui.setNextWindowSize(getWindowWidth(), getWindowHeight());
+        ImGui.setNextWindowPos(150f, 150f);
+
         // Main loop
         while (!GLFW.glfwWindowShouldClose(window))
         {
             // Poll events
             GLFW.glfwPollEvents();
 
+            if (currentGUI != null)
+            {
+                currentGUI.prepare();
+                currentGUI.build();
+            }
+
             // Clear the screen - Clear both color and depth buffers
             GL30.glClear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT);
 
             // Update camera and projection
             Camera.update();
-//            updateLightingUniforms();
             updateOrthoProjection();
 
             // Load and render chunks
             ChunkManager.loadVisibleChunks(Camera.getXOffset(), Camera.getYOffset());
             ChunkManager.renderChunks(chunkRenderer);
+
+            if (currentGUI != null)
+                currentGUI.draw();
 
             // Swap buffers
             GLFW.glfwSwapBuffers(window);

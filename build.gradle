@@ -53,4 +53,8 @@ dependencies {
 
     implementation "com.google.guava:guava:33.3.0-jre"
     implementation "org.joml:joml:1.10.5"
+    implementation 'io.imgui.java:imgui-java-binding:1.80-1.5.0'
+    implementation 'io.imgui.java:imgui-java-lwjgl3:1.80-1.5.0'
+    implementation "io.github.spair:imgui-java-natives-linux:1.80-1.5.0"
+    implementation "io.github.spair:imgui-java-natives-windows:1.80-1.5.0"
 }

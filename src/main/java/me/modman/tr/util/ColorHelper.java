@@ -1,7 +1,10 @@
-package me.modman.tr;
+package me.modman.tr.util;
 
+import me.modman.tr.math.OpenSimplex2S;
 import me.modman.tr.math.LibGDXMath;
 
+import java.awt.*;
+import java.util.HashMap;
 import java.util.Random;
 
 public class ColorHelper
@@ -16,6 +19,9 @@ public class ColorHelper
     private int x, z;
     private int height;
     private long initMS;
+    private HashMap<Point, float[]> colorCache = new HashMap<>();
+
+    public ColorHelper() {}
 
     public ColorHelper(int blockID, int data, int x, int z, int height)
     {
@@ -57,11 +63,10 @@ public class ColorHelper
         return this;
     }
 
-    private float[] getWaterColorWithNoise(float[] baseWaterColor, int x, int z, float time)
+    private float[] getWaterColorWithNoise(float[] baseWaterColor, int x, int z)
     {
-
         float noise = generateNoise(x, z);
-        double wave = Math.sin((x + z) * (WAVE_FREQUENCY * 0.2f) + time) * noise;
+        double wave = LibGDXMath.sin((x + z) * (WAVE_FREQUENCY * 0.2f)) * noise;
         float noiseFactor = (float) (0.1f * wave);
 
         return new float[]{
@@ -71,14 +76,14 @@ public class ColorHelper
         };
     }
 
-    private float[] getWaterColorWithReflection(float[] baseWaterColor, int x, int z, float time)
+    private float[] getWaterColorWithReflection(float[] baseWaterColor, int x, int z)
     {
         // Add time-based offset to create movement in the reflection effect
         float speed = 0.5f; // Adjust the speed of movement
-        float timeOffset = time * speed;
+//        float timeOffset = time * speed;
 
         // Calculate reflection effect based on position and time
-        float reflectionIntensity = (float) (LibGDXMath.cos((float) ((x + z) * 0.1 + timeOffset)) * 0.1); // Vary by position and time
+        float reflectionIntensity = (float) (LibGDXMath.cos((float) ((x + z) * 0.1)) * 0.1); // Vary by position and time
         float highlight = 0.05f; // Reflection strength
 
         return new float[]{
@@ -122,6 +127,9 @@ public class ColorHelper
 
     public float[] getFinalColor()
     {
+        Point key = new Point(x, z);
+        if (colorCache.containsKey(key)) return colorCache.get(key);
+
         float[] baseColor = switch (blockID)
         {
             case 1 -> new float[]{0.5f, 0.5f, 0.5f}; // Gray for Stone
@@ -148,9 +156,14 @@ public class ColorHelper
             default -> new float[]{1.0f, 1.0f, 1.0f}; // White for Unknown
         };
 
+        float[] finalColor = baseColor;
+
         if (linearInterpolation)
-            return interpolate(baseColor, 60, 80);
-        else return baseColor;
+            finalColor = interpolate(baseColor, 60, 80);
+
+        colorCache.put(key, finalColor);
+
+        return finalColor;
     }
 
     private float[] interpolate(float[] baseColor, int minHeight, int maxHeight)
@@ -175,8 +188,8 @@ public class ColorHelper
 
         float[] newColor = baseColor;
         if (linearInterpolation) newColor = interpolate(newColor, 60, 80);
-        if (specularLightSim) newColor = getWaterColorWithReflection(newColor, x, z, time);
-        if (noise) newColor = getWaterColorWithNoise(newColor, x, z, time);
+        if (specularLightSim) newColor = getWaterColorWithReflection(newColor, x, z);
+        if (noise) newColor = getWaterColorWithNoise(newColor, x, z);
         if (sine) newColor = getWaterWithTimeSine(newColor, x, z, time);
         if (dirFlow) newColor = getWaterColorWithDirFlow(newColor, x, z);
         return newColor;
@@ -221,5 +234,15 @@ public class ColorHelper
     private float generateNoise(int x, int z)
     {
         return (float) (LibGDXMath.sin((float) (x * 12.9898 + z * 78.233)) * 43758.5453 % 1.0);
+    }
+
+    public ColorHelper set(byte blockID, byte blockData, int x, int z, byte blockHeight)
+    {
+        this.blockID = blockID;
+        this.data = blockData;
+        this.x = x;
+        this.z = z;
+        this.height = blockHeight;
+        return this;
     }
 }

@@ -1,32 +1,31 @@
-package me.modman.tr;
+package me.modman.tr.chunk;
 
+import me.modman.tr.util.Camera;
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL30;
 
+import java.awt.Point; // Use Point instead of String for chunk keys
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 
 public class ChunkManager {
 
     private static final int CHUNK_SIZE = 16;
     private static final int RENDER_DISTANCE = 10; // How many chunks to render around the camera
-    private static Map<String, Chunk> loadedChunks = new HashMap<>();
+    private static final Map<Point, Chunk> loadedChunks = new HashMap<>(); // Use Point for chunk keys
 
     public static void loadVisibleChunks(float cameraX, float cameraY) {
-        // Calculate the chunk coordinates based on the camera position and zoom level
-        int chunkX = (int) (cameraX / (CHUNK_SIZE * Camera.getZoom()));
-        int chunkZ = (int) (cameraY / (CHUNK_SIZE * Camera.getZoom()));
+        // Cache Camera zoom level to avoid repeated calls
+        float zoom = Camera.getZoom();
+        int chunkX = (int) (cameraX / (CHUNK_SIZE * zoom));
+        int chunkZ = (int) (cameraY / (CHUNK_SIZE * zoom));
 
-        // Define the range to load chunks based on the render distance
-        for (int x = -(RENDER_DISTANCE); x <= RENDER_DISTANCE; x++) {
+        // Use Point objects to represent chunk coordinates
+        for (int x = -RENDER_DISTANCE; x <= RENDER_DISTANCE; x++) {
             for (int z = -RENDER_DISTANCE; z <= RENDER_DISTANCE; z++) {
                 int currentChunkX = chunkX + x;
                 int currentChunkZ = chunkZ + z;
-                String key = currentChunkX + "," + currentChunkZ;
+                Point key = new Point(currentChunkX, currentChunkZ);
 
                 // Load the chunk if not already loaded
                 if (!loadedChunks.containsKey(key)) {
@@ -37,36 +36,32 @@ public class ChunkManager {
     }
 
     private static void loadChunk(int chunkX, int chunkZ) {
-        String key = chunkX + "," + chunkZ;
+        Point key = new Point(chunkX, chunkZ);
         if (!loadedChunks.containsKey(key)) {
             loadedChunks.put(key, ChunkLoader.loadChunk(chunkX, chunkZ, CHUNK_SIZE));
         }
     }
 
-    public static void renderChunks(ChunkRenderer chunkRenderer)
-    {
-//        GL30.glPushMatrix();
-
+    public static void renderChunks(ChunkRenderer chunkRenderer) {
         int chunkRenderCount = 0;
-        for (Map.Entry<String, Chunk> entry : loadedChunks.entrySet())
-        {
-            String[] coords = entry.getKey().split(",");
-            int chunkX = Integer.parseInt(coords[0]);
-            int chunkZ = Integer.parseInt(coords[1]);
-//            if (!isCoordinateInViewport(chunkX, chunkZ, Camera.getProjectionMatrix(), Camera.getViewMatrix(), Main.getWindowWidth(), Main.getWindowHeight())) continue;
-            chunkRenderCount++;
+
+        for (Map.Entry<Point, Chunk> entry : loadedChunks.entrySet()) {
+            Point coords = entry.getKey();
+            int chunkX = coords.x;
+            int chunkZ = coords.y;
+
             Chunk chunk = entry.getValue();
             if (chunk == null) continue;
+
             Block[] chunkData = chunk.getChunkData();
             if (chunkData == null) continue;
-            chunkRenderer.renderChunk(chunk, CHUNK_SIZE, chunkX, chunkZ);
+
+            chunkRenderCount++;
+            chunkRenderer.renderChunk2(chunk, CHUNK_SIZE, chunkX, chunkZ);
         }
-//        System.out.println("Rendered " + chunkRenderCount + " visible chunks");
-//        GL30.glPopMatrix();
     }
 
-    public static boolean isChunkVisible(float chunkX, float chunkZ)
-    {
+    public static boolean isChunkVisible(float chunkX, float chunkZ) {
         Matrix4f viewMatrix = Camera.getViewMatrix();
         Matrix4f projectionMatrix = Camera.getProjectionMatrix();
         Matrix4f mvpMatrix = new Matrix4f(projectionMatrix).mul(viewMatrix);
@@ -79,8 +74,7 @@ public class ChunkManager {
                 chunkCenter.z >= -1.0f && chunkCenter.z <= 1.0f;
     }
 
-    public static boolean isCoordinateInViewport(float x, float z, Matrix4f projectionMatrix, Matrix4f viewMatrix, int windowWidth, int windowHeight)
-    {
+    public static boolean isCoordinateInViewport(float x, float z, Matrix4f projectionMatrix, Matrix4f viewMatrix, int windowWidth, int windowHeight) {
         // Combine view and projection matrices
         Matrix4f mvpMatrix = new Matrix4f(projectionMatrix).mul(viewMatrix);
 
@@ -88,13 +82,11 @@ public class ChunkManager {
         Vector4f clipSpace = new Vector4f(x, 0.0f, z, 1.0f).mul(mvpMatrix);
 
         // Perform perspective divide to get normalized device coordinates (NDC)
-        if (clipSpace.w != 0.0f)
-        {
+        if (clipSpace.w != 0.0f) {
             clipSpace.x /= clipSpace.w;
             clipSpace.y /= clipSpace.w;
             clipSpace.z /= clipSpace.w;
-        } else
-        {
+        } else {
             return false; // Avoid division by zero
         }
 

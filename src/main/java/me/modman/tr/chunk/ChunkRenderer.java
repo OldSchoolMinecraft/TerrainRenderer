@@ -1,6 +1,13 @@
-package me.modman.tr;
+package me.modman.tr.chunk;
 
+import me.modman.tr.*;
+import me.modman.tr.util.Camera;
+import me.modman.tr.util.ColorHelper;
+import me.modman.tr.util.ShaderUtils;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL30;
+
+import java.nio.FloatBuffer;
 
 public class ChunkRenderer
 {
@@ -197,6 +204,84 @@ public class ChunkRenderer
         GL30.glUniform1f(timeMatrixLocation, ((System.currentTimeMillis() - initMS) / 1000.0f));
         GL30.glUniform2f(resolutionMatrixLocation, Main.getWindowWidth(), Main.getWindowHeight());
     }
+
+    public void renderChunk2(Chunk chunk, int chunkSize, int chunkX, int chunkZ)
+    {
+        if (chunk == null) return;
+        Block[] chunkData = chunk.getChunkData();
+        if (chunkData == null) return;
+
+        float zoom = Camera.getZoom();
+        float aspectRatio = (float) Main.getWindowWidth() / Main.getWindowHeight();
+        float baseBlockSize = 1.0f / 16.0f;
+        float blockSize = (baseBlockSize * zoom);
+        float chunkWorldX = chunkX * chunkSize * blockSize;
+        float chunkWorldZ = chunkZ * chunkSize * blockSize;
+
+        FloatBuffer vertexBuffer = BufferUtils.createFloatBuffer(16 * 16 * VERTICES_PER_QUAD * (FLOATS_PER_VERTEX + 1));
+
+        // Precreate ColorHelper instance if possible
+        ColorHelper colorHelper = new ColorHelper();
+
+        for (int z = 0; z < 16; z++)
+        {
+            for (int x = 0; x < 16; x++)
+            {
+                int blockIndex = x + z * 16;
+                Block block = chunkData[blockIndex];
+                byte blockID = block.getID();
+                byte blockData = block.getData();
+                byte blockHeight = block.getHeight();
+                float[] color = colorHelper.set(blockID, blockData, x * chunkSize, z * chunkSize, blockHeight)
+                        .noise().linearInterpolation().specularLight().getFinalColor();
+
+                float blockX = (chunkWorldX + (x * blockSize)) / aspectRatio;
+                float blockY = (chunkWorldZ + (z * blockSize));
+                float blockEndX = blockX + (blockSize * aspectRatio);
+                float blockEndY = blockY + blockSize;
+
+                // Fill vertex buffer directly
+                addQuadToBuffer(vertexBuffer, blockX, blockY, blockEndX, blockEndY, color, blockID);
+            }
+        }
+
+        vertexBuffer.flip();
+
+        GL30.glBindVertexArray(vaoId);
+        GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, vboId);
+        GL30.glBufferData(GL30.GL_ARRAY_BUFFER, vertexBuffer, GL30.GL_STATIC_DRAW); // Use GL_STATIC_DRAW or GL_DYNAMIC_DRAW based on needs
+
+        GL30.glUseProgram(defaultShaderProgramID);
+        setShaderUniforms();
+        setChunkUniforms(chunkX, chunkZ);
+
+        GL30.glDrawArrays(GL30.GL_TRIANGLES, 0, 16 * 16 * VERTICES_PER_QUAD);
+        GL30.glUseProgram(0);
+        GL30.glBindVertexArray(0);
+    }
+
+    private void addQuadToBuffer(FloatBuffer buffer, float x1, float y1, float x2, float y2, float[] color, byte blockID)
+    {
+        // Add vertex data for two triangles (one quad)
+        buffer.put(new float[]{x1, y1, color[0], color[1], color[2], blockID});
+        buffer.put(new float[]{x2, y1, color[0], color[1], color[2], blockID});
+        buffer.put(new float[]{x1, y2, color[0], color[1], color[2], blockID});
+
+        buffer.put(new float[]{x2, y1, color[0], color[1], color[2], blockID});
+        buffer.put(new float[]{x2, y2, color[0], color[1], color[2], blockID});
+        buffer.put(new float[]{x1, y2, color[0], color[1], color[2], blockID});
+    }
+
+    private void setChunkUniforms(int chunkX, int chunkZ)
+    {
+        float chunkOffsetX = (float) (chunkX * 0.1);
+        float chunkOffsetY = (float) (chunkZ * 0.1);
+        int chunkOffsetMatrixLocation = GL30.glGetUniformLocation(defaultShaderProgramID, "u_ChunkOffset");
+        GL30.glUniform2f(chunkOffsetMatrixLocation, chunkOffsetX, chunkOffsetY);
+        int chunkSeedMatrixLocation = GL30.glGetUniformLocation(defaultShaderProgramID, "u_ChunkSeed");
+        GL30.glUniform1f(chunkSeedMatrixLocation, chunkX * 1000f * chunkZ);
+    }
+
 
     public void renderSimpleSquare(float centerX, float centerY, float size, float[] color) {
         // Calculate the vertices for a square centered at (centerX, centerY) with a given size

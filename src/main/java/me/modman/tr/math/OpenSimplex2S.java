@@ -1,4 +1,4 @@
-package me.modman.tr;
+package me.modman.tr.math;
 
 /**
  * K.jpg's OpenSimplex 2, smooth variant ("SuperSimplex")

@@ -1,12 +1,9 @@
-package me.modman.tr;
+package me.modman.tr.chunk;
 
 import com.google.common.io.LittleEndianDataInputStream;
 
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.file.Files;
 
 public class ChunkLoader {
