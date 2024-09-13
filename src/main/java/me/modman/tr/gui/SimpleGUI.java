@@ -7,8 +7,9 @@ import me.modman.tr.Main;
 
 public abstract class SimpleGUI
 {
-    private final ImGuiImplGl3 imguiGL3 = new ImGuiImplGl3();
-    private final ImGuiImplGlfw imguiGLFW = new ImGuiImplGlfw();
+    private static final ImGuiImplGl3 imguiGL3 = new ImGuiImplGl3();
+    private static final ImGuiImplGlfw imguiGLFW = new ImGuiImplGlfw();
+    private static boolean initialized = false;
     protected String title;
 
     public SimpleGUI(String title)
@@ -20,6 +21,7 @@ public abstract class SimpleGUI
     {
         imguiGL3.init();
         imguiGLFW.init(Main.getWindowID(), false);
+        initialized = true;
     }
 
     public void prepare()

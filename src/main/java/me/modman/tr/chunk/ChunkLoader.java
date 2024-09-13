@@ -45,7 +45,7 @@ public class ChunkLoader {
 
             System.out.println("Loaded chunk " + chunkX + "," + chunkZ);
 
-            return new Chunk(chunkData);
+            return new Chunk(chunkX, chunkZ, chunkData);
         } catch (IOException e) {
             System.err.println("Error while loading chunk (" + chunkX + "," + chunkZ + "): " + e.getMessage());
         }

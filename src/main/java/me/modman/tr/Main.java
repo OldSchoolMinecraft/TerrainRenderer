@@ -1,10 +1,12 @@
 package me.modman.tr;
 
 import imgui.ImGui;
+import imgui.gl3.ImGuiImplGl3;
 import me.modman.tr.chunk.ChunkManager;
 import me.modman.tr.chunk.ChunkRenderer;
 import me.modman.tr.gui.DebugUI;
 import me.modman.tr.gui.SimpleGUI;
+import me.modman.tr.reis.Environment;
 import me.modman.tr.util.Camera;
 import me.modman.tr.util.ShaderUtils;
 import org.joml.Matrix4f;
@@ -28,6 +30,10 @@ public class Main {
 
     private static final int WINDOW_WIDTH = 1280;
     private static final int WINDOW_HEIGHT = 720;
+    private static int frames = 0;
+    private static long lastTime = System.currentTimeMillis();
+    private static float currentFPS = 0.0f;
+
 
     public static int getWindowWidth()
     {
@@ -88,15 +94,15 @@ public class Main {
         {
             if (key == GLFW.GLFW_KEY_GRAVE_ACCENT && action == GLFW.GLFW_RELEASE)
             {
-                if (currentGUI instanceof DebugUI)
-                {
-                    currentGUI = null;
-                    usingGUI = false;
-                    return;
-                }
-                currentGUI = new DebugUI();
-                currentGUI.init();
-                usingGUI = true;
+//                if (currentGUI instanceof DebugUI)
+//                {
+//                    currentGUI = null;
+//                    usingGUI = false;
+//                    return;
+//                }
+//                currentGUI = new DebugUI();
+//                currentGUI.init();
+//                usingGUI = true;
             }
         };
         try (GLFWKeyCallback callback = GLFW.glfwSetKeyCallback(window, keyCallback)) {}
@@ -145,9 +151,23 @@ public class Main {
         ImGui.setNextWindowSize(getWindowWidth(), getWindowHeight());
         ImGui.setNextWindowPos(150f, 150f);
 
+        Environment.setWorldSeed(-3303761891926602389L);
+
         // Main loop
         while (!GLFW.glfwWindowShouldClose(window))
         {
+            long currentTime = System.currentTimeMillis();
+            frames++;
+
+            // Calculate FPS every second
+            if (currentTime - lastTime >= 1000)
+            {
+                currentFPS = frames * 1000.0f / (currentTime - lastTime);
+                GLFW.glfwSetWindowTitle(window, "OSM Terrain Renderer - FPS: " + String.format("%.2f", currentFPS));
+                frames = 0;
+                lastTime = currentTime;
+            }
+
             // Poll events
             GLFW.glfwPollEvents();
 
@@ -156,6 +176,11 @@ public class Main {
                 currentGUI.prepare();
                 currentGUI.build();
             }
+
+            DebugUI debugUI = new DebugUI();
+            debugUI.init();
+            debugUI.prepare();
+            debugUI.build();
 
             // Clear the screen - Clear both color and depth buffers
             GL30.glClear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT);
@@ -170,6 +195,7 @@ public class Main {
 
             if (currentGUI != null)
                 currentGUI.draw();
+            debugUI.draw();
 
             // Swap buffers
             GLFW.glfwSwapBuffers(window);
@@ -216,6 +242,11 @@ public class Main {
             GL30.glUniformMatrix4fv(viewMatrixLocation, false, viewMatrixBuffer);
             GL30.glUseProgram(0);
         }
+    }
+
+    public static float getFPS()
+    {
+        return currentFPS;
     }
 
     public static double[] getCursorPos(long windowID) {

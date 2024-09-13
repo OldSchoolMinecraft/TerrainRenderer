@@ -97,4 +97,9 @@ public class ChunkManager {
         // Check if coordinates are within the viewport
         return ndcX >= 0 && ndcX <= windowWidth && ndcY >= 0 && ndcY <= windowHeight;
     }
+
+    public static Map<Point, Chunk> getLoadedChunks()
+    {
+        return loadedChunks;
+    }
 }

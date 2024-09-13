@@ -1,8 +1,13 @@
 package me.modman.tr.chunk;
 
 import me.modman.tr.*;
+import me.modman.tr.reis.BlockColor;
+import me.modman.tr.reis.Environment;
+import me.modman.tr.reis.PixelColor;
+import me.modman.tr.reis.TintType;
 import me.modman.tr.util.Camera;
 import me.modman.tr.util.ColorHelper;
+import me.modman.tr.util.PixelColorRedux;
 import me.modman.tr.util.ShaderUtils;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL30;
@@ -18,6 +23,7 @@ public class ChunkRenderer
     private final int VERTICES_PER_QUAD = 6; // 6 vertices per quad (2 triangles, 3 vertices per triangle)
     private final int FLOATS_PER_VERTEX = 5; // x, y, r, g, b
     private long initMS;
+    private float[] lightBrightnessTable = this.generateLightBrightnessTable(2.0f / 16.0f);
 
     public void init()
     {
@@ -222,6 +228,7 @@ public class ChunkRenderer
 
         // Precreate ColorHelper instance if possible
         ColorHelper colorHelper = new ColorHelper();
+        PixelColorRedux pixelColor = new PixelColorRedux();
 
         for (int z = 0; z < 16; z++)
         {
@@ -232,8 +239,23 @@ public class ChunkRenderer
                 byte blockID = block.getID();
                 byte blockData = block.getData();
                 byte blockHeight = block.getHeight();
-                float[] color = colorHelper.set(blockID, blockData, x * chunkSize, z * chunkSize, blockHeight)
-                        .noise().linearInterpolation().specularLight().getFinalColor();
+
+                BlockColor blockColor = BlockColor.getBlockColor(blockID, blockData);
+
+                // Convert to pixel color
+                int r = (int) (blockColor.red * 255);
+                int g = (int) (blockColor.green * 255);
+                int b = (int) (blockColor.blue * 255);
+                int a = (int) (blockColor.alpha * 255);
+
+
+                compositeColor(chunk, x, blockHeight, z, blockData, pixelColor, blockColor, blockColor.tintType);
+//                pixelColor.composite(blockColor.alpha, blockColor.red, blockColor.green, blockColor.blue);
+
+//                float[] color = colorHelper.set(blockID, blockData, x * chunkSize, z * chunkSize, blockHeight)
+//                        .noise().linearInterpolation().specularLight().getFinalColor();
+
+                float[] color = new float[] { pixelColor.red, pixelColor.green, pixelColor.blue };
 
                 float blockX = (chunkWorldX + (x * blockSize)) / aspectRatio;
                 float blockY = (chunkWorldZ + (z * blockSize));
@@ -249,7 +271,121 @@ public class ChunkRenderer
 
         GL30.glBindVertexArray(vaoId);
         GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, vboId);
-        GL30.glBufferData(GL30.GL_ARRAY_BUFFER, vertexBuffer, GL30.GL_STATIC_DRAW); // Use GL_STATIC_DRAW or GL_DYNAMIC_DRAW based on needs
+        GL30.glBufferData(GL30.GL_ARRAY_BUFFER, vertexBuffer, GL30.GL_DYNAMIC_DRAW); // Use GL_STATIC_DRAW or GL_DYNAMIC_DRAW based on needs
+
+        GL30.glUseProgram(defaultShaderProgramID);
+        setShaderUniforms();
+        setChunkUniforms(chunkX, chunkZ);
+
+        GL30.glDrawArrays(GL30.GL_TRIANGLES, 0, 16 * 16 * VERTICES_PER_QUAD);
+        GL30.glUseProgram(0);
+        GL30.glBindVertexArray(0);
+    }
+
+    private int lightmap = 1;
+    private boolean environmentColor = true;
+    private void compositeColor(Chunk chunk, int x, int y, int z, int metadata, PixelColorRedux pixel, BlockColor color, TintType tintType) {
+        // If color has zero alpha and y is greater than 0, recursively call for the block below
+        if (color.alpha == 0.0F && y > 0) {
+            this.compositeColor(chunk, x, y - 1, z, metadata, pixel, color, color.tintType);
+            return;
+        }
+
+        // Determine light value based on the current lightmap setting
+        int lightValue = 0;
+        switch (this.lightmap) {
+            case 1:
+                lightValue = (y < 127) ? Math.min(15, 10) : 15;
+                break;
+            case 2:
+                lightValue = (y < 127) ? Math.min(15, 4) : 4;
+                break;
+            case 3:
+                lightValue = 15;
+                break;
+            default:
+                this.lightmap = 0;
+        }
+
+        // Get brightness from the light brightness table
+        float lightBrightness = this.lightBrightnessTable[lightValue];
+
+        // Apply environment color based on the tint type
+        if (this.environmentColor) {
+            int level;
+            switch (color.tintType.ordinal()) {
+                case 1: // Grass tint
+                    level = Environment.getEnvironment(chunk, x, z).getGrassColor();
+                    pixel.composite(color.alpha, level, lightBrightness * 0.6F);
+                    return;
+                case 2: // Foliage tint
+                    level = Environment.getEnvironment(chunk, x, z).getFoliageColor();
+                    pixel.composite(color.alpha, level, lightBrightness * 0.5F);
+                    return;
+                case 3: // Pine foliage tint
+                    level = Environment.getEnvironment(chunk, x, z).getFoliageColorPine();
+                    pixel.composite(color.alpha, level, lightBrightness * 0.5F);
+                    return;
+                case 4: // Birch foliage tint
+                    level = Environment.getEnvironment(chunk, x, z).getFoliageColorBirch();
+                    pixel.composite(color.alpha, level, lightBrightness * 0.5F);
+                    return;
+            }
+        }
+
+        // Apply special tint types (water and glass)
+        if (color.tintType != TintType.WATER || tintType != TintType.WATER) {
+            if (color.tintType != TintType.GLASS || tintType != TintType.GLASS) {
+                if (color.tintType == TintType.REDSTONE) {
+                    float level1 = (float) metadata * 0.06666667F;
+                    float r = metadata == 0 ? 0.3F : level1 * 0.6F + 0.4F;
+                    float g = Math.max(0.0F, level1 * level1 * 0.7F - 0.5F);
+                    float b = 0.0F;
+                    float a = color.alpha;
+                    pixel.composite(a, r, g, b, lightBrightness);
+                } else {
+                    pixel.composite(color.alpha, color.red, color.green, color.blue, lightBrightness);
+                }
+            }
+        }
+
+        // Apply additional lighting effect based on the y-coordinate
+        float factor = 0.25F;
+        double red = (double) (y);
+        float blue = (float) Math.log10(Math.abs(red) * 0.125D + 1.0D) * factor;
+        if (red >= 0.0D) {
+            pixel.red += blue * (1.0F - pixel.red);
+            pixel.green += blue * (1.0F - pixel.green);
+            pixel.blue += blue * (1.0F - pixel.blue);
+        } else {
+            pixel.red -= Math.abs(blue) * pixel.red;
+            pixel.green -= Math.abs(blue) * pixel.green;
+            pixel.blue -= Math.abs(blue) * pixel.blue;
+        }
+    }
+
+    private float[] generateLightBrightnessTable(float f)
+    {
+        float[] result = new float[16];
+
+        for (int i = 0; i <= 15; ++i)
+        {
+            float f1 = 1.0F - (float) i / 15.0F;
+            result[i] = (1.0F - f1) / (f1 * 3.0F + 1.0F) * (1.0F - f) + f;
+        }
+
+        return result;
+    }
+
+    public void renderChunk3(Chunk chunk, int chunkX, int chunkZ)
+    {
+        if (chunk == null) return;
+        FloatBuffer vertexBuffer = chunk.getVertexBuffer();
+        if (vertexBuffer == null || vertexBuffer.capacity() == 0) return;
+
+        GL30.glBindVertexArray(vaoId);
+        GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, chunk.getVboID());
+//        GL30.glBufferData(GL30.GL_ARRAY_BUFFER, vertexBuffer, GL30.GL_DYNAMIC_DRAW); // Upload the buffer data
 
         GL30.glUseProgram(defaultShaderProgramID);
         setShaderUniforms();
@@ -281,7 +417,6 @@ public class ChunkRenderer
         int chunkSeedMatrixLocation = GL30.glGetUniformLocation(defaultShaderProgramID, "u_ChunkSeed");
         GL30.glUniform1f(chunkSeedMatrixLocation, chunkX * 1000f * chunkZ);
     }
-
 
     public void renderSimpleSquare(float centerX, float centerY, float size, float[] color) {
         // Calculate the vertices for a square centered at (centerX, centerY) with a given size
