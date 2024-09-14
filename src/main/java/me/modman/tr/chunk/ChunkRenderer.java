@@ -283,7 +283,7 @@ public class ChunkRenderer
     }
 
     private int lightmap = 1;
-    private boolean environmentColor = true;
+    private boolean environmentColor = false;
     private void compositeColor(Chunk chunk, int x, int y, int z, int metadata, PixelColorRedux pixel, BlockColor color, TintType tintType) {
         // If color has zero alpha and y is greater than 0, recursively call for the block below
         if (color.alpha == 0.0F && y > 0) {
