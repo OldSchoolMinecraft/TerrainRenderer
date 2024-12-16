@@ -22,7 +22,7 @@ public class RegionLoader
         int regionX = (chunkX >> 5);
         int regionZ = (chunkZ >> 5);
 
-        String regionFileName = "region." + regionX + "." + regionZ + ".dat";
+        String regionFileName = "r." + regionX + "." + regionZ + ".mcr";
         File regionFile = new File(dataFolder, regionFileName);
 
         if (!regionFile.exists())

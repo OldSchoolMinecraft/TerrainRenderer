@@ -228,7 +228,7 @@ public class ChunkRenderer
 
         // Precreate ColorHelper instance if possible
         ColorHelper colorHelper = new ColorHelper();
-        PixelColorRedux pixelColor = new PixelColorRedux();
+        PixelColor pixelColor = new PixelColor();
 
         for (int z = 0; z < 16; z++)
         {
@@ -240,7 +240,7 @@ public class ChunkRenderer
                 byte blockData = block.getData();
                 byte blockHeight = block.getHeight();
 
-                BlockColor blockColor = BlockColor.getBlockColor(blockID, blockData);
+                /*BlockColor blockColor = BlockColor.getBlockColor(blockID, blockData);
 
                 // Convert to pixel color
                 int r = (int) (blockColor.red * 255);
@@ -248,14 +248,16 @@ public class ChunkRenderer
                 int b = (int) (blockColor.blue * 255);
                 int a = (int) (blockColor.alpha * 255);
 
+                pixelColor.clear();
 
                 compositeColor(chunk, x, blockHeight, z, blockData, pixelColor, blockColor, blockColor.tintType);
-//                pixelColor.composite(blockColor.alpha, blockColor.red, blockColor.green, blockColor.blue);
 
-//                float[] color = colorHelper.set(blockID, blockData, x * chunkSize, z * chunkSize, blockHeight)
-//                        .noise().linearInterpolation().specularLight().getFinalColor();
+                pixelColor.composite(blockColor.alpha, blockColor.red, blockColor.green, blockColor.blue);*/
 
-                float[] color = new float[] { pixelColor.red, pixelColor.green, pixelColor.blue };
+                float[] color = colorHelper.set(blockID, blockData, x * chunkSize, z * chunkSize, blockHeight)
+                        .noise().linearInterpolation().specularLight().getFinalColor();
+
+//                float[] color = new float[] { pixelColor.red, pixelColor.green, pixelColor.blue };
 
                 float blockX = (chunkWorldX + (x * blockSize)) / aspectRatio;
                 float blockY = (chunkWorldZ + (z * blockSize));
@@ -284,12 +286,12 @@ public class ChunkRenderer
 
     private int lightmap = 1;
     private boolean environmentColor = false;
-    private void compositeColor(Chunk chunk, int x, int y, int z, int metadata, PixelColorRedux pixel, BlockColor color, TintType tintType) {
+    private void compositeColor(Chunk chunk, int x, int y, int z, int metadata, PixelColor pixel, BlockColor color, TintType tintType) {
         // If color has zero alpha and y is greater than 0, recursively call for the block below
-        if (color.alpha == 0.0F && y > 0) {
-            this.compositeColor(chunk, x, y - 1, z, metadata, pixel, color, color.tintType);
-            return;
-        }
+//        if (color.alpha == 0.0F && y > 0) {
+//            this.compositeColor(chunk, x, y - 1, z, metadata, pixel, color, color.tintType);
+//            return;
+//        }
 
         // Determine light value based on the current lightmap setting
         int lightValue = 0;
@@ -303,6 +305,9 @@ public class ChunkRenderer
             case 3:
                 lightValue = 15;
                 break;
+//            case 0:
+//                lightValue = y < 127 ? chunk.getBlockLightValue(x, y + 1, z, this.skylightSubtracted) : 15 - this.skylightSubtracted;
+//                break;
             default:
                 this.lightmap = 0;
         }
@@ -350,8 +355,8 @@ public class ChunkRenderer
         }
 
         // Apply additional lighting effect based on the y-coordinate
-        float factor = 0.25F;
-        double red = (double) (y);
+        float factor = 0.6F;
+        double red = (double) (y - 65);
         float blue = (float) Math.log10(Math.abs(red) * 0.125D + 1.0D) * factor;
         if (red >= 0.0D) {
             pixel.red += blue * (1.0F - pixel.red);

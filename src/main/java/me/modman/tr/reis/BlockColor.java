@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 public class BlockColor {
-	private static final int BLOCK_NUM = 255; // Total number of block IDs
+	private static final int BLOCK_NUM = 256; // Total number of block IDs
 	private static final BlockColor[] blockColors = new BlockColor[BLOCK_NUM * 16 + 1];
 	private static final boolean[] useMetadata = new boolean[BLOCK_NUM];
 	private static final HashMap<String, Integer> nameMap = new HashMap<>();
@@ -228,8 +228,8 @@ public class BlockColor {
 		blockColors[id(96, 7)] = new BlockColor(545152301);
 		// Add more block colors as needed
 
-		// Example name mappings
-		nameMap.put("exampleBlock", 0); // Add more mappings as needed
+//		 Example name mappings
+//		nameMap.put("exampleBlock", 0); // Add more mappings as needed
 
 		calcUseMetadata();
 	}
